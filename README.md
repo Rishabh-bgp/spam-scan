@@ -6,12 +6,12 @@
 
 Paste a message. You get a verdict (Spam, Unsure or Not spam), the reason for it, the scam rules that fired, and the words that pushed the score up or down.
 
-[![Python](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/flask-3.x-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9.1-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-[Quick start](#quick-start) · [How it works](#how-it-works) · [Results](#results) · [Limitations](#limitations) · [Documentation](#documentation)
+[Live demo](#live-demo) · [Quick start](#quick-start) · [How it works](#how-it-works) · [Results](#results) · [Limitations](#limitations) · [Documentation](#documentation)
 
 <img src="docs/images/verdict-spam-skull.png" alt="SPAM//SCAN flagging a fake SBI KYC message as Spam, with three red flags and a neon skull" width="820">
 
@@ -23,6 +23,10 @@ Paste a message. You get a verdict (Spam, Unsure or Not spam), the reason for it
 > If you have been defrauded in India, call **1930** or report it at [cybercrime.gov.in](https://cybercrime.gov.in).
 
 ---
+
+## Live demo
+
+**Try it online:** _LIVE_URL_PLACEHOLDER_ (Hugging Face Spaces, free tier: the first visit after a quiet spell can take about a minute to wake up). See [Deploying to Hugging Face Spaces](#deploying-to-hugging-face-spaces).
 
 ## Features
 
@@ -56,7 +60,7 @@ Paste a message. You get a verdict (Spam, Unsure or Not spam), the reason for it
 
 ## Quick start
 
-You need **Python 3.9 or newer**. It was tested with Python 3.13 and scikit-learn 1.9.1. The trained model (`model.joblib`, about 8 MB) is in the repository, so you **don't** need to train anything.
+You need **Python 3.12 or newer** (`requirements.txt` pins numpy 2.5 and scipy 1.18, which need 3.12+). It was tested with Python 3.13 and scikit-learn 1.9.1. The trained model (`model.joblib`, about 8 MB) is in the repository, so you **don't** need to train anything.
 
 ```bash
 git clone https://github.com/Rishabh-bgp/spam-scan.git
@@ -125,11 +129,24 @@ spam-scan/
 ├── model.joblib         # trained scikit-learn pipeline (scikit-learn 1.9.1)
 ├── templates/           # index.html, how.html, base_style.html, fx.html (no external assets)
 ├── docs/                # detailed documentation + screenshots
-├── requirements.txt     # runtime: scikit-learn, flask, joblib, numpy
+├── requirements.txt     # pinned runtime deps: scikit-learn 1.9.1, numpy, scipy, joblib, flask, gunicorn
+├── Dockerfile           # production image: python:3.13-slim + gunicorn on port 7860 (Hugging Face Space)
+├── .dockerignore
+├── deploy/hf/           # Hugging Face Space README (YAML front matter) + deploy.sh / deploy.py
 ├── requirements-data.txt  # + pandas, pyarrow (only to rebuild the dataset)
 ├── run.sh / run.bat     # one-step setup and start
 └── data/                # (git-ignored) combined.csv.gz and raw downloads, created by prepare_data.py
 ```
+
+## Deploying to Hugging Face Spaces
+
+The repo ships a `Dockerfile` (gunicorn, port 7860, non-root user) and a one-command deploy script for a free [Hugging Face Docker Space](https://huggingface.co/docs/hub/spaces-sdks-docker):
+
+```bash
+HF_TOKEN=hf_xxxxxxxx deploy/hf/deploy.sh      # creates/updates <your-hf-username>/spam-scan
+```
+
+It creates the Space if it's missing, uploads the app files with the Space-specific README from `deploy/hf/README.md`, and waits for the build. Live URL: _LIVE_URL_PLACEHOLDER_. Docker, local gunicorn and troubleshooting are covered in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## How it works
 
@@ -217,7 +234,7 @@ These are ideas, not promises. Contributions are welcome.
 - [ ] Calibrate probabilities (for example with `CalibratedClassifierCV`) and re-tune the Unsure band.
 - [ ] Move the probes into a `pytest` suite with CI on GitHub Actions.
 - [ ] Add a separate, *untouched* test set for the rules so their real-world precision can be measured.
-- [ ] Ship a Dockerfile and a production WSGI setup (for example `waitress` or `gunicorn`).
+- [x] Ship a Dockerfile and a production WSGI setup (gunicorn), deployable to Hugging Face Spaces.
 - [ ] Add more languages and scripts (Bengali, Tamil, Marathi...) and more real Hinglish data.
 
 ## Documentation
@@ -230,6 +247,7 @@ These are ideas, not promises. Contributions are welcome.
 | [API.md](docs/API.md) | Every route, with request/response schemas and real captured responses |
 | [TESTING.md](docs/TESTING.md) | Probe groups, current scores, misses and how to add probes |
 | [UI.md](docs/UI.md) | Threat Matrix, Random Payload, SFX, the skull/angel/ghost, the Gray zone, deep links and accessibility |
+| [DEPLOY.md](docs/DEPLOY.md) | gunicorn, Docker and the Hugging Face Spaces deploy script |
 | [FAQ.md](docs/FAQ.md) | Common questions |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Port in use, scikit-learn version mismatch, Mac background process, and more |
 | [CONTRIBUTING.md](CONTRIBUTING.md) · [CHANGELOG.md](CHANGELOG.md) · [SECURITY.md](SECURITY.md) | How to help, version history, responsible use |

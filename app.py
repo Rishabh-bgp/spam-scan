@@ -68,6 +68,8 @@ def compute_example_stats():
 compute_example_stats()
 
 app = Flask(__name__)
+# Reject oversized request bodies early (413). The text itself is capped at MAX_CHARS.
+app.config["MAX_CONTENT_LENGTH"] = 256 * 1024
 
 
 @app.context_processor
@@ -122,6 +124,9 @@ def model_info():
 
 
 if __name__ == "__main__":
+    # Local dev server. Defaults to 127.0.0.1:5000; HOST / PORT env vars override it.
+    # In production (Docker / Hugging Face Space) gunicorn serves `app:app` instead,
+    # reading the same HOST / PORT variables (see Dockerfile).
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "5000"))
     print(f"Spam classifier running at http://{host}:{port}")

@@ -1,4 +1,11 @@
-scikit-learn>=1.3,<2
-flask>=3.0,<4
-joblib>=1.3
-numpy>=1.24
+# Runtime dependencies, pinned to the versions model.joblib was trained/tested with.
+# scikit-learn MUST match the version that pickled model.joblib (1.9.1).
+# Needs Python 3.12+ (numpy 2.5 / scipy 1.18); tested with Python 3.13.
+scikit-learn==1.9.1
+numpy==2.5.3
+scipy==1.18.1
+joblib==1.6.0
+flask==3.1.3
+# Production WSGI server (used by the Dockerfile / Hugging Face Space).
+# Not needed for `python app.py`; gunicorn does not run on Windows.
+gunicorn==26.2.0; sys_platform != "win32"

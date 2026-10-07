@@ -17,6 +17,7 @@
 - [The page is too animated or slow](#the-page-is-too-animated-or-slow)
 - [I changed a rule or example but nothing changed](#i-changed-a-rule-or-example-but-nothing-changed)
 - [Results differ from the docs](#results-differ-from-the-docs)
+- [Hugging Face Space or Docker problems](DEPLOY.md#troubleshooting-the-space)
 
 ## Port 5000 is already in use
 
@@ -116,7 +117,7 @@ The error is `running scripts is disabled on this system`.
 
 ## python / python3 not found, or the wrong version
 
-- You need **Python 3.9 or newer** (the code uses the `dict | dict` operator). It was tested with Python 3.13.
+- You need **Python 3.12 or newer**. The code itself runs on 3.9+, but `requirements.txt` pins numpy 2.5.3 and scipy 1.18.1, which need 3.12+, and scikit-learn 1.9.1 (needed to load `model.joblib`) needs 3.11+. It was tested with Python 3.13.
 - macOS / Linux: `python3 --version`. `run.sh` tries `python3` and then `python`.
 - Windows: install Python from python.org and tick **"Add python.exe to PATH"**, or use the launcher: `py -3 -m venv .venv`. `run.bat` falls back to `py -3` automatically.
 - If an old `.venv` was made with another Python, delete it and run the script again.

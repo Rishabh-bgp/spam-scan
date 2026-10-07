@@ -1,0 +1,14 @@
+.venv/
+venv/
+data/
+server.log
+*.log
+*.tgz
+*.zip
+__pycache__/
+*.pyc
+.git/
+.github/
+docs/
+deploy/
+.dockerignore

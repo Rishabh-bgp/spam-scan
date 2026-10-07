@@ -4,6 +4,17 @@ All notable changes to SPAM//SCAN are listed here. The format follows [Keep a Ch
 
 > Versions 0.1–0.12 are **retrospective labels** for the development stages before the first public commit. All of them are contained in `1.0.0` (commit `3d637fb`). "SPAM//SCAN v2" in the UI refers to the redesigned interface (0.7 onwards), not to a release number. The stage contents are summarised from the development history, so the exact boundaries between stages are approximate.
 
+## [1.1.0] – 2026-10-08
+
+### Added
+- Production serving: a `Dockerfile` (`python:3.13-slim`, non-root uid 1000, gunicorn `gthread` with 2 workers × 4 threads, `--preload`, port 7860) and a `.dockerignore`.
+- Hugging Face Spaces deployment: `deploy/hf/README.md` (Space front matter) and `deploy/hf/deploy.sh` / `deploy.py` (create the Space if needed and upload the app with `huggingface_hub`).
+- `docs/DEPLOY.md`, plus a deploy section in the README.
+
+### Changed
+- `requirements.txt` now pins exact versions (scikit-learn 1.9.1, numpy 2.5.3, scipy 1.18.1, joblib 1.6.0, Flask 3.1.3) and adds gunicorn 26.2.0 (skipped on Windows). This needs **Python 3.12+**.
+- Request bodies over 256 KB are rejected with 413 (`MAX_CONTENT_LENGTH`). Predictions are unchanged.
+
 ## [1.0.1] – 2026-10-08
 
 ### Added

@@ -22,7 +22,7 @@ SPAM//SCAN is a learning project. It **does not guarantee** that a message is sa
 The app uses Flask's **development server** and has no authentication, rate limiting, CSRF protection or TLS. It is meant for `localhost`.
 
 - Setting `HOST=0.0.0.0` exposes it to your network. Only do that on a network you trust.
-- To host it publicly, run it behind a production WSGI server (for example `waitress` or `gunicorn`) and a reverse proxy with TLS and rate limiting, and keep `debug=False`. Requests are capped at 10,000 characters of text, but there is no overall request-size limit.
+- To host it publicly, use the production setup in the `Dockerfile` (gunicorn; see [docs/DEPLOY.md](docs/DEPLOY.md)) behind HTTPS. Hugging Face Spaces provides TLS, but there is still no authentication or rate limiting, and `debug` is always off. Request bodies are capped at 256 KB and `text` at 10,000 characters.
 
 ## Reporting a vulnerability
 

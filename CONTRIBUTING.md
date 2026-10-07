@@ -53,7 +53,7 @@ You only need `pip install -r requirements-data.txt` if you want to rebuild the 
 
 ## Style
 
-- Python 3.9+ compatible, standard library plus the packages in `requirements*.txt`. Keep functions small and add a one-line docstring.
+- Python 3.12+ (the pinned numpy/scipy need it), standard library plus the packages in `requirements*.txt`. Keep functions small and add a one-line docstring.
 - Regular expressions: case-insensitive, with `\b` boundaries for short words. Comment anything non-obvious.
 - Templates: no external CDNs, fonts or trackers. Respect `prefers-reduced-motion`. Every new control must work with the keyboard.
 - Gallery and probe messages: fake numbers and domains only (`98XXXXXX12`, `*.xyz`, `example.com`).
