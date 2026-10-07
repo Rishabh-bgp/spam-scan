@@ -17,7 +17,7 @@
 - [The page is too animated or slow](#the-page-is-too-animated-or-slow)
 - [I changed a rule or example but nothing changed](#i-changed-a-rule-or-example-but-nothing-changed)
 - [Results differ from the docs](#results-differ-from-the-docs)
-- [Hugging Face Space or Docker problems](DEPLOY.md#troubleshooting-the-space)
+- [Deployment problems (Render, Docker)](DEPLOY.md#troubleshooting-deployments)
 
 ## Port 5000 is already in use
 
@@ -142,7 +142,7 @@ By default the app only listens on `127.0.0.1` (this computer). To reach it from
 HOST=0.0.0.0 PORT=5000 python app.py
 ```
 
-Then open `http://<your-computer's-LAN-IP>:5000` on the other device, and allow Python through your firewall if asked. Only do this on a network you trust. There's no login, and it's a development server (see [SECURITY.md](../SECURITY.md)).
+Then open `http://<your-computer's-LAN-IP>:5000` on the other device, and allow Python through your firewall if asked. Only do this on a network you trust. There's no login, and it's a development server (see [SECURITY.md](../SECURITY.md)). To use it from anywhere, try the [live demo](https://spam-scan.onrender.com) or deploy your own copy ([DEPLOY.md](DEPLOY.md)).
 
 ## No sound
 

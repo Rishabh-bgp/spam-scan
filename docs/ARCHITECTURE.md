@@ -108,7 +108,7 @@ sequenceDiagram
     B->>B: render verdict, character, flags, highlights, play SFX
 ```
 
-1. **Validation** (`app.api_predict`). The body must be JSON with a non-empty string `text`, or the response is HTTP 400. Text longer than `MAX_CHARS = 10000` gives HTTP 413.
+1. **Validation** (`app.api_predict`). The body must be JSON with a non-empty string `text`, or the response is HTTP 400. Text longer than `MAX_CHARS = 10000` gives HTTP 413, and so does a request body over 256 KB (`MAX_CONTENT_LENGTH`), which Flask rejects before the view runs.
 2. **ML score** (`Explainer.explain`). The pipeline's `features` step turns the text into a sparse TF-IDF vector. The probability is computed directly as `sigmoid(intercept + Σ x_j·w_j)`, which is the same value as `predict_proba` for binary logistic regression.
 3. **Red flags** (`redflags.check`). All 15 rules run on the original text, not the normalised one.
 4. **Safe signals** (`redflags.safe_signals`). All 8 signals run, and then the blockers are checked.

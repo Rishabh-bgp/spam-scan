@@ -24,8 +24,8 @@ SPAM//SCAN is a small Flask app. This page documents every route. All the JSON r
 | `GET` | `/` | HTML | Scanner UI and Threat Matrix. Supports `?q=` and `?open=` (handled in the browser) |
 | `GET` | `/how-it-works` | HTML | Transparency page |
 
-- **Base URL:** `http://127.0.0.1:5000` by default. Change it with the `HOST` and `PORT` environment variables.
-- **No authentication, no rate limiting, no CORS headers.** It's meant to run on your own machine. Don't expose it to the internet as it is (see [SECURITY.md](../SECURITY.md)).
+- **Base URL:** `http://127.0.0.1:5000` when you run it locally (change it with the `HOST` and `PORT` environment variables). The live demo serves the same API at `https://spam-scan.onrender.com`, for example `https://spam-scan.onrender.com/api/predict`. The demo sleeps when idle, so the first call can take about a minute.
+- **No authentication, no rate limiting, no CORS headers.** Don't send private messages to the public demo, and only host it publicly with gunicorn behind HTTPS (see [DEPLOY.md](DEPLOY.md) and [SECURITY.md](../SECURITY.md)).
 - Responses are UTF-8 JSON with keys in a fixed order (`sort_keys = False`) and non-ASCII characters left as they are (`ensure_ascii = False`), so Hindi text stays readable.
 - Nothing is stored. Each request is independent.
 
@@ -672,6 +672,7 @@ Returns the transparency page (HTML). It is built from `metrics.json`, `redflags
 |---|---|---|
 | `text` missing, empty or whitespace-only, or the body is not valid JSON | 400 | `{"error":"Provide a non-empty 'text' string."}` |
 | `text` longer than 10,000 characters | 413 | `{"error":"Text too long (max 10000 characters)."}` |
+| Request body larger than 256 KB (`MAX_CONTENT_LENGTH`) | 413 | Flask's default HTML "413 Request Entity Too Large" page |
 | Wrong method (for example `GET /api/predict`) | 405 | Flask's default HTML "405 Method Not Allowed" page |
 | Unknown path | 404 | Flask's default HTML 404 page |
 

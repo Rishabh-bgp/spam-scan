@@ -6,14 +6,21 @@ All notable changes to SPAM//SCAN are listed here. The format follows [Keep a Ch
 
 ## [1.1.0] – 2026-10-08
 
+Production deployment. **No changes to predictions**: the model, rules and probe scores are the same as in 1.0.1.
+
 ### Added
-- Production serving: a `Dockerfile` (`python:3.13-slim`, non-root uid 1000, gunicorn `gthread` with 2 workers × 4 threads, `--preload`, port 7860) and a `.dockerignore`.
-- Hugging Face Spaces deployment: `deploy/hf/README.md` (Space front matter) and `deploy/hf/deploy.sh` / `deploy.py` (create the Space if needed and upload the app with `huggingface_hub`).
-- `docs/DEPLOY.md`, plus a deploy section in the README.
+- **Live demo on Render:** https://spam-scan.onrender.com, defined by the `render.yaml` Blueprint (free web service, Python 3.13.5, Singapore region, one gunicorn worker × 4 threads for the 512 MB free plan, health check `/api/health`, auto-deploy on every push to `main`). The README and `docs/DEPLOY.md` have a **Deploy to Render** button.
+- A generic production `Dockerfile` (`python:3.13-slim`, non-root uid 1000, gunicorn `gthread` with 2 workers × 4 threads, `--preload`, default port 8000 that platforms can override with `PORT`) and a `.dockerignore`.
+- `docs/DEPLOY.md` (Render, Docker, the local production server, production settings and deployment troubleshooting), plus a Deployment section and a live-demo badge in the README.
 
 ### Changed
 - `requirements.txt` now pins exact versions (scikit-learn 1.9.1, numpy 2.5.3, scipy 1.18.1, joblib 1.6.0, Flask 3.1.3) and adds gunicorn 26.2.0 (skipped on Windows). This needs **Python 3.12+**.
-- Request bodies over 256 KB are rejected with 413 (`MAX_CONTENT_LENGTH`). Predictions are unchanged.
+- Request bodies over 256 KB are rejected with 413 (`MAX_CONTENT_LENGTH`).
+- The docs (README, API, FAQ, SECURITY, CONTRIBUTING, TROUBLESHOOTING) now describe the public demo and its privacy and limits. The README project tree matches the repository again.
+- `.gitignore` also covers logs, archives, editor folders and `.env`.
+
+### Removed
+- The Hugging Face Spaces upload script (`deploy/hf/`), which was added briefly during this release (commit `a25c088`). Hugging Face now requires a PRO subscription for Docker Spaces, so it couldn't be used on a free account. `docs/DEPLOY.md` explains how to use the `Dockerfile` on a PRO Space instead.
 
 ## [1.0.1] – 2026-10-08
 

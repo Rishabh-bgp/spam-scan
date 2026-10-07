@@ -49,7 +49,8 @@ You only need `pip install -r requirements-data.txt` if you want to rebuild the 
 4. **Keep it explainable.** Every rule needs an `id`, a short title and a plain-language explanation. Prefer several narrow pattern groups to one broad regex.
 5. **Don't change `textnorm.py` without retraining.** The shipped model calls it at prediction time.
 6. **If you retrain**, commit `model.joblib` and `metrics.json` together, and say so in the PR. Note the scikit-learn version.
-7. **Update the docs** if behaviour changes: [docs/RULES.md](docs/RULES.md) for rules, [docs/API.md](docs/API.md) for API fields, and [CHANGELOG.md](CHANGELOG.md).
+7. **Remember that `main` is live.** Every push to `main` auto-deploys the [public demo](https://spam-scan.onrender.com) on Render, so only merge changes that pass the probes. See [docs/DEPLOY.md](docs/DEPLOY.md).
+8. **Update the docs** if behaviour changes: [docs/RULES.md](docs/RULES.md) for rules, [docs/API.md](docs/API.md) for API fields, and [CHANGELOG.md](CHANGELOG.md).
 
 ## Style
 

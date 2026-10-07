@@ -6,12 +6,13 @@
 
 Paste a message. You get a verdict (Spam, Unsure or Not spam), the reason for it, the scam rules that fired, and the words that pushed the score up or down.
 
+[![Live demo](https://img.shields.io/badge/live%20demo-spam--scan.onrender.com-46E3B7?logo=render&logoColor=white)](https://spam-scan.onrender.com)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/flask-3.x-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9.1-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-[Live demo](#live-demo) · [Quick start](#quick-start) · [How it works](#how-it-works) · [Results](#results) · [Limitations](#limitations) · [Documentation](#documentation)
+**[Try the live demo](https://spam-scan.onrender.com)** · [Quick start](#quick-start) · [Deployment](#deployment) · [How it works](#how-it-works) · [Results](#results) · [Limitations](#limitations) · [Documentation](#documentation)
 
 <img src="docs/images/verdict-spam-skull.png" alt="SPAM//SCAN flagging a fake SBI KYC message as Spam, with three red flags and a neon skull" width="820">
 
@@ -24,10 +25,6 @@ Paste a message. You get a verdict (Spam, Unsure or Not spam), the reason for it
 
 ---
 
-## Live demo
-
-**Try it online:** [spam-scan.onrender.com](https://spam-scan.onrender.com) (Render free plan: the first visit after about 15 quiet minutes can take around a minute to wake up). Deployment details are in [docs/DEPLOY.md](docs/DEPLOY.md).
-
 ## Features
 
 - **Three verdicts, not two.** The result is *Spam*, *Unsure* or *Not spam*, with a sentence that explains how it was decided. An ML score between 35% and 65% counts as uncertain.
@@ -39,7 +36,7 @@ Paste a message. You get a verdict (Spam, Unsure or Not spam), the reason for it
 - **Cyberpunk "hacker" UI.** The interface has a boot sequence, Matrix rain, a live scan log and a **Threat Matrix** of 18 example categories (83 example messages). There is also a random-payload button (or press <kbd>R</kbd>), optional Web Audio sound effects, and a neon skull, angel or ghost for each verdict. It respects *reduced motion*.
 - **Transparency page** at `/how-it-works`, generated from `metrics.json`. It lists the datasets, per-dataset test scores, probe results, the strongest features, every rule and the full domain allowlist.
 - **JSON API** (`POST /api/predict`) that returns everything the UI shows.
-- **Runs locally and offline.** No external CDNs, fonts or trackers are used, and the app doesn't store your messages.
+- **Runs locally and offline, or online.** No external CDNs, fonts or trackers are used, and the app doesn't store your messages. A [live demo](https://spam-scan.onrender.com) runs on Render.
 
 ## Screenshots
 
@@ -108,6 +105,7 @@ curl -s -X POST http://127.0.0.1:5000/api/predict \
      -H "Content-Type: application/json" \
      -d '{"text": "Your SBI account will be blocked today, update KYC"}'
 # -> "verdict": "spam", ML 63.7% plus the medium kyc_block rule (see docs/API.md)
+# The same works against the live demo: https://spam-scan.onrender.com/api/predict
 ```
 
 Problems? See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md). Port 5000 is taken by AirPlay Receiver on many Macs.
@@ -116,37 +114,42 @@ Problems? See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md). Port 5000 is t
 
 ```text
 spam-scan/
-├── app.py               # Flask app: UI, /how-it-works, /api/predict, /api/health, /api/model-info
-├── explain.py           # exact per-feature explanations + the final verdict logic (decide)
-├── redflags.py          # 15 red-flag rules and 8 safe signals (hand-written, readable regexes)
-├── domains.py           # official-domain allowlist (96), link parsing, look-alike detection
-├── textnorm.py          # text normalisation shared by training and serving
-├── train.py             # trains the model, evaluates per dataset + probes, writes model.joblib + metrics.json
-├── prepare_data.py      # downloads the 7 public datasets and builds data/combined.csv.gz
-├── probes.py            # 167 hand-written robustness probes + 43 domain-matcher cases
-├── examples.json        # Threat Matrix gallery: 18 categories, 83 messages (fake numbers/links)
-├── metrics.json         # metrics written by train.py (shown on /how-it-works)
-├── model.joblib         # trained scikit-learn pipeline (scikit-learn 1.9.1)
-├── templates/           # index.html, how.html, base_style.html, fx.html (no external assets)
-├── docs/                # detailed documentation + screenshots
-├── requirements.txt     # pinned runtime deps: scikit-learn 1.9.1, numpy, scipy, joblib, flask, gunicorn
-├── Dockerfile           # production image: python:3.13-slim + gunicorn on port 7860 (Hugging Face Space)
-├── .dockerignore
-├── deploy/hf/           # Hugging Face Space README (YAML front matter) + deploy.sh / deploy.py
+├── app.py                 # Flask app: UI, /how-it-works, /api/predict, /api/health, /api/model-info
+├── explain.py             # exact per-feature explanations + the final verdict logic (decide)
+├── redflags.py            # 15 red-flag rules and 8 safe signals (hand-written, readable regexes)
+├── domains.py             # official-domain allowlist (96), link parsing, look-alike detection
+├── textnorm.py            # text normalisation shared by training and serving
+├── train.py               # trains the model, evaluates per dataset + probes, writes model.joblib + metrics.json
+├── prepare_data.py        # downloads the 7 public datasets and builds data/combined.csv.gz
+├── probes.py              # 167 hand-written robustness probes + 43 domain-matcher cases
+├── examples.json          # Threat Matrix gallery: 18 categories, 83 messages (fake numbers/links)
+├── metrics.json           # metrics written by train.py (shown on /how-it-works)
+├── model.joblib           # trained scikit-learn pipeline (scikit-learn 1.9.1, ~8 MB)
+├── templates/             # index.html, how.html, base_style.html, fx.html (no external assets)
+├── requirements.txt       # pinned runtime deps: scikit-learn 1.9.1, numpy, scipy, joblib, flask, gunicorn
 ├── requirements-data.txt  # + pandas, pyarrow (only to rebuild the dataset)
-├── run.sh / run.bat     # one-step setup and start
-└── data/                # (git-ignored) combined.csv.gz and raw downloads, created by prepare_data.py
+├── run.sh / run.bat       # one-step local setup and start
+├── render.yaml            # Render Blueprint for the live demo (free web service, gunicorn)
+├── Dockerfile             # generic production image (python:3.13-slim + gunicorn), plus .dockerignore
+├── docs/                  # detailed documentation + images/ (screenshots)
+├── .github/               # issue templates
+├── README.md · CHANGELOG.md · CONTRIBUTING.md · SECURITY.md · LICENSE
+└── data/                  # (git-ignored) combined.csv.gz and raw downloads, created by prepare_data.py
 ```
 
-## Deploying to Hugging Face Spaces
+## Deployment
 
-The repo ships a `Dockerfile` (gunicorn, port 7860, non-root user) and a one-command deploy script for a free [Hugging Face Docker Space](https://huggingface.co/docs/hub/spaces-sdks-docker):
+The live demo at **[spam-scan.onrender.com](https://spam-scan.onrender.com)** runs on Render's free plan from [`render.yaml`](render.yaml): one gunicorn worker, a health check on `/api/health`, and an auto-deploy on every push to `main`. The free plan has **512 MB of RAM** and **sleeps after about 15 idle minutes**, so the first visit after that takes around a minute.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Rishabh-bgp/spam-scan)
+
+Prefer containers? The generic [`Dockerfile`](Dockerfile) runs on any Docker host:
 
 ```bash
-HF_TOKEN=hf_xxxxxxxx deploy/hf/deploy.sh      # creates/updates <your-hf-username>/spam-scan
+docker build -t spam-scan . && docker run --rm -p 8000:8000 spam-scan   # http://127.0.0.1:8000
 ```
 
-It creates the Space if it's missing, uploads the app files with the Space-specific README from `deploy/hf/README.md`, and waits for the build. Hugging Face now needs a PRO account for Docker Spaces, so the public demo runs on Render instead (`render.yaml`, live at https://spam-scan.onrender.com). Docker, local gunicorn and troubleshooting are covered in [docs/DEPLOY.md](docs/DEPLOY.md).
+[docs/DEPLOY.md](docs/DEPLOY.md) covers Render, Docker, the production server settings and troubleshooting, and explains why Hugging Face Spaces isn't used (it needs a PRO plan for Docker Spaces).
 
 ## How it works
 
@@ -234,7 +237,7 @@ These are ideas, not promises. Contributions are welcome.
 - [ ] Calibrate probabilities (for example with `CalibratedClassifierCV`) and re-tune the Unsure band.
 - [ ] Move the probes into a `pytest` suite with CI on GitHub Actions.
 - [ ] Add a separate, *untouched* test set for the rules so their real-world precision can be measured.
-- [x] Ship a Dockerfile and a production WSGI setup (gunicorn), deployable to Hugging Face Spaces.
+- [x] Production deployment: gunicorn, a Dockerfile and a live demo on Render.
 - [ ] Add more languages and scripts (Bengali, Tamil, Marathi...) and more real Hinglish data.
 
 ## Documentation
@@ -247,7 +250,7 @@ These are ideas, not promises. Contributions are welcome.
 | [API.md](docs/API.md) | Every route, with request/response schemas and real captured responses |
 | [TESTING.md](docs/TESTING.md) | Probe groups, current scores, misses and how to add probes |
 | [UI.md](docs/UI.md) | Threat Matrix, Random Payload, SFX, the skull/angel/ghost, the Gray zone, deep links and accessibility |
-| [DEPLOY.md](docs/DEPLOY.md) | gunicorn, Docker and the Hugging Face Spaces deploy script |
+| [DEPLOY.md](docs/DEPLOY.md) | The live Render deployment, Deploy to Render, Docker, production settings and deployment troubleshooting |
 | [FAQ.md](docs/FAQ.md) | Common questions |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Port in use, scikit-learn version mismatch, Mac background process, and more |
 | [CONTRIBUTING.md](CONTRIBUTING.md) · [CHANGELOG.md](CHANGELOG.md) · [SECURITY.md](SECURITY.md) | How to help, version history, responsible use |

@@ -12,17 +12,19 @@ SPAM//SCAN is a learning project. It **does not guarantee** that a message is sa
 
 ## Privacy
 
-- The app runs locally and listens on `127.0.0.1` by default. It loads **no external scripts, fonts or trackers**.
+- Run locally, the app listens on `127.0.0.1` by default. It loads **no external scripts, fonts or trackers**.
+- The **public demo** at [spam-scan.onrender.com](https://spam-scan.onrender.com) is hosted by Render, which keeps request logs (paths, IP addresses, user agents). Don't paste real personal messages into it. Run the app locally for those.
 - Messages are analysed in memory and **not stored** by the app.
-- **Exception:** the `/?q=<text>` deep link puts the message in the URL, so it can end up in browser history and in the Flask console log (`server.log` if you redirect output there). Use the text box or `POST /api/predict` for private messages.
+- **Exception:** the `/?q=<text>` deep link puts the message in the URL, so it can end up in browser history and in the server's access log (the Flask console, `server.log` if you redirect output there, or the hosting platform's logs). Use the text box or `POST /api/predict` for private messages.
 - **Don't paste real personal data into GitHub issues.** Anonymise numbers, names, OTPs and links first (see [CONTRIBUTING.md](CONTRIBUTING.md#privacy-first-anonymise-messages)).
 
 ## Deployment
 
-The app uses Flask's **development server** and has no authentication, rate limiting, CSRF protection or TLS. It is meant for `localhost`.
+The app has **no authentication, rate limiting or CSRF protection**. `debug` is always off.
 
-- Setting `HOST=0.0.0.0` exposes it to your network. Only do that on a network you trust.
-- To host it publicly, use the production setup in the `Dockerfile` (gunicorn; see [docs/DEPLOY.md](docs/DEPLOY.md)) behind HTTPS. Hugging Face Spaces provides TLS, but there is still no authentication or rate limiting, and `debug` is always off. Request bodies are capped at 256 KB and `text` at 10,000 characters.
+- `python app.py` uses Flask's **development server** and is meant for `localhost`. Setting `HOST=0.0.0.0` exposes it to your network, so only do that on a network you trust.
+- For public hosting, use gunicorn behind HTTPS: the Render Blueprint (`render.yaml`, which gives TLS on `*.onrender.com`) or the `Dockerfile` behind a TLS-terminating proxy. See [docs/DEPLOY.md](docs/DEPLOY.md).
+- Request bodies are capped at 256 KB and `text` at 10,000 characters. Add rate limiting at your proxy or platform if you expect heavy traffic.
 
 ## Reporting a vulnerability
 

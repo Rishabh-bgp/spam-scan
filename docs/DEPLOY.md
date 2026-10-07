@@ -2,99 +2,114 @@
 
 ← Back to the [README](../README.md) · See also [TROUBLESHOOTING.md](TROUBLESHOOTING.md) and [SECURITY.md](../SECURITY.md)
 
-**Live demo:** https://spam-scan.onrender.com (Render free plan, see [Render](#render-current-live-deployment) below)
+**Live demo:** [spam-scan.onrender.com](https://spam-scan.onrender.com), running on Render's free plan from [`render.yaml`](../render.yaml).
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Rishabh-bgp/spam-scan)
 
 ## Contents
 
-- [How production serving works](#how-production-serving-works)
+- [Options at a glance](#options-at-a-glance)
+- [Render (live demo)](#render-live-demo)
+- [Docker (any host)](#docker-any-host)
 - [Run the production server locally](#run-the-production-server-locally)
-- [Docker](#docker)
-- [Deploying to Hugging Face Spaces](#deploying-to-hugging-face-spaces)
-- [Updating the Space](#updating-the-space)
-- [Troubleshooting the Space](#troubleshooting-the-space)
+- [Hugging Face Spaces (needs PRO)](#hugging-face-spaces-needs-pro)
+- [How production serving works](#how-production-serving-works)
+- [Troubleshooting deployments](#troubleshooting-deployments)
 
-## How production serving works
+## Options at a glance
 
-| | Local (`python app.py`, `run.sh`) | Production (Docker / Hugging Face) |
-|---|---|---|
-| Server | Flask development server | [gunicorn](https://gunicorn.org/) `app:app` |
-| Address | `127.0.0.1:5000` | `0.0.0.0:7860` |
-| Config | `HOST`, `PORT` env vars | `HOST`, `PORT`, `WEB_CONCURRENCY` (workers, default 2), `GUNICORN_THREADS` (threads per worker, default 4) |
+| Option | Cost | Config | Notes |
+|---|---|---|---|
+| **Render** (primary, live) | Free plan | [`render.yaml`](../render.yaml) Blueprint | 512 MB RAM, sleeps after about 15 idle minutes, auto-deploys on every push to `main` |
+| **Docker** (any host) | Depends on the host | [`Dockerfile`](../Dockerfile) | Works on a VPS, Railway, Fly.io, Cloud Run, or Render's Docker runtime |
+| Local production server | Free | `gunicorn app:app` | For testing the production setup on macOS / Linux |
+| Hugging Face Spaces | Needs a PRO subscription | `Dockerfile` + Space front matter | Not used by this project |
 
-- gunicorn runs with `--preload`, so `model.joblib` (about 8 MB on disk, about 300 MB of RAM including scikit-learn and the gallery stats) is loaded **once** in the master process and shared with the workers through copy-on-write.
-- 2 workers × 4 `gthread` threads suits the free Hugging Face hardware (2 vCPU, 16 GB RAM). A prediction takes a few milliseconds, so this handles plenty of traffic.
-- The app **writes no files** at runtime: no logs, uploads or caches. Access and error logs go to stdout/stderr. `PYTHONDONTWRITEBYTECODE=1` stops `__pycache__` writes, gunicorn's heartbeat files live in `/dev/shm` and its control socket goes in `$HOME/.gunicorn`. This matters on Hugging Face, where only `/tmp` and the home directory are writable.
-- Request bodies over 256 KB are rejected with **413**, as is any `text` over 10,000 characters.
-- `requirements.txt` pins exact versions. **scikit-learn must stay at 1.9.1**, the version that pickled `model.joblib`. If you upgrade it, retrain with `python train.py`.
+## Render (live demo)
 
-## Run the production server locally
+The live demo is a free Render **web service** defined by the [`render.yaml`](../render.yaml) Blueprint in the repo root:
 
-macOS / Linux (gunicorn doesn't run on Windows):
+| Setting | Value |
+|---|---|
+| Runtime | Python, `PYTHON_VERSION=3.13.5` |
+| Region | Singapore |
+| Build | `pip install -r requirements.txt` |
+| Start | `gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --worker-class gthread --timeout 120` |
+| Health check | `/api/health` |
+| Auto-deploy | On every push to `main` |
 
-```bash
-pip install -r requirements.txt
-HOST=127.0.0.1 PORT=7860 gunicorn app:app --bind 127.0.0.1:7860 \
-  --workers 2 --threads 4 --worker-class gthread --preload --timeout 60
-# open http://127.0.0.1:7860
-```
+**Deploy your own copy:** click **Deploy to Render** above, sign in to Render (a free account is enough), and approve the Blueprint. Render builds the app and gives you a URL like `https://spam-scan-xxxx.onrender.com`. To deploy from your own fork, use `https://render.com/deploy?repo=https://github.com/<you>/spam-scan`.
 
-## Docker
+Free-plan limits to know about:
+
+- **512 MB of RAM.** One gunicorn worker with the model loaded uses about 330 MB, so the Blueprint runs a **single worker** with 4 threads and no `--preload`. Don't raise `--workers` on the free plan, or the instance will run out of memory.
+- **It sleeps after about 15 minutes without traffic.** The next visit wakes it up, which takes around a minute. After that, predictions take a few milliseconds.
+- Render sets `PORT` itself, and the start command binds to it. You don't need to set `HOST` or `PORT`.
+
+## Docker (any host)
 
 ```bash
 docker build -t spam-scan .
-docker run --rm -p 7860:7860 spam-scan
-# open http://127.0.0.1:7860
+docker run --rm -p 8000:8000 spam-scan
+# open http://127.0.0.1:8000
 ```
 
-The image is based on `python:3.13-slim`, runs as a non-root user (uid 1000) and listens on port 7860. `.dockerignore` keeps `.venv`, `data/`, `docs/`, logs, archives and `.git` out of the build context. Expect the image to be about 420 MB: roughly 125 MB of base image, 285 MB of Python packages (mostly scipy, numpy and scikit-learn) and 8 MB of model.
+- The image is based on `python:3.13-slim` and runs as a non-root user (uid 1000). By default gunicorn runs 2 workers × 4 `gthread` threads with `--preload`, on `0.0.0.0:8000`.
+- Platforms that inject a `PORT` variable (Render, Railway, Fly.io, Cloud Run) override the default automatically. To pick a port yourself, run `docker run -e PORT=9000 -p 9000:9000 spam-scan`.
+- Tune the concurrency with `-e WEB_CONCURRENCY=<workers> -e GUNICORN_THREADS=<threads>`. On a **512 MB** host, use `WEB_CONCURRENCY=1`.
+- `.dockerignore` keeps `.git`, `.venv`, `data/`, `docs/`, logs and archives out of the build context. Expect the image to be about 420 MB: roughly 125 MB of base image, 285 MB of Python packages (mostly scipy, numpy and scikit-learn) and the 8 MB model. *(This is an estimate. The image hasn't been measured with a real `docker build`.)*
 
-Override the concurrency with `docker run -e WEB_CONCURRENCY=4 -e GUNICORN_THREADS=8 ...`.
+## Run the production server locally
 
-## Deploying to Hugging Face Spaces
+On macOS / Linux (gunicorn doesn't run on Windows; use `python app.py` there):
 
-The Space uses the **Docker SDK**. Hugging Face reads the Space settings (`sdk: docker`, `app_port: 7860`, title, emoji, licence) from YAML front matter at the top of the Space's `README.md`. That front matter would look messy on GitHub, so the Space has its own README at [`deploy/hf/README.md`](../deploy/hf/README.md), which the deploy script uploads as `README.md`.
+```bash
+pip install -r requirements.txt
+gunicorn app:app --bind 127.0.0.1:8000 --workers 2 --threads 4 --worker-class gthread --preload --timeout 60
+# open http://127.0.0.1:8000
+```
 
-1. Create a free account at [huggingface.co](https://huggingface.co/join).
-2. Create a **write** token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens). For a fine-grained token, allow write access to repos in your personal namespace.
-3. From the repository root, run:
+## Hugging Face Spaces (needs PRO)
 
-   ```bash
-   HF_TOKEN=hf_xxxxxxxx deploy/hf/deploy.sh            # creates/updates <your-username>/spam-scan
-   HF_TOKEN=hf_xxxxxxxx deploy/hf/deploy.sh me/my-name # or pick a Space id
-   HF_TOKEN=hf_xxxxxxxx deploy/hf/deploy.sh --dry-run  # only list the files it would upload
+As of October 2026, Hugging Face requires a **PRO subscription** to host Docker (and Gradio) Spaces on its CPU hardware. A free account gets *402 Payment Required* when it tries to create the Space. That's why the live demo runs on Render.
+
+If you have PRO, the `Dockerfile` works as-is:
+
+1. Create a Space with the **Docker** SDK and push this repo to it.
+2. At the top of the Space's `README.md`, add front matter that tells Hugging Face which port to use:
+
+   ```yaml
+   ---
+   title: SPAM SCAN
+   sdk: docker
+   app_port: 8000
+   license: mit
+   ---
    ```
 
-The script:
+(An earlier upload script for Spaces was removed in 1.1.0 because a free account can't use it. It's still in the git history at commit `a25c088`.)
 
-- installs `huggingface_hub` into a separate tools venv (`~/.cache/spam-scan/hf-tools`, override with `HF_TOOLS_VENV`), never into the app's `.venv`;
-- looks up your username with the token (`/api/whoami-v2`) and stops if the token is read-only;
-- creates the **public** Space if it's missing (`create_repo(repo_type="space", space_sdk="docker", exist_ok=True)`);
-- uploads the git-tracked runtime files (`*.py`, `templates/`, `model.joblib`, `examples.json`, `metrics.json`, `requirements.txt`, `Dockerfile`, `.dockerignore`, `LICENSE`) plus the Space README, with `upload_folder`. Docs, screenshots, `.github/` and training data are not uploaded;
-- waits for the Docker build and prints the live URL, for example `https://<username>-spam-scan.hf.space`.
+## How production serving works
 
-The first build takes about 3–5 minutes. After that, the Space page is `https://huggingface.co/spaces/<username>/spam-scan`.
+| | Local (`python app.py`, `run.sh`) | Render | Docker |
+|---|---|---|---|
+| Server | Flask development server | gunicorn, 1 worker × 4 threads | gunicorn, 2 workers × 4 threads, `--preload` |
+| Address | `127.0.0.1:5000` | `0.0.0.0:$PORT` (set by Render) | `0.0.0.0:${PORT:-8000}` |
+| Config | `HOST`, `PORT` | `render.yaml` | `HOST`, `PORT`, `WEB_CONCURRENCY`, `GUNICORN_THREADS` |
+
+- The model is about 8 MB on disk and about 300–330 MB of RAM per process, including scikit-learn and the gallery stats computed at startup. With `--preload`, Docker loads it once in the master process, and the workers share it through copy-on-write.
+- The app **writes no files** at runtime: no logs, uploads or caches. Access and error logs go to stdout/stderr, so read them in your platform's log viewer.
+- Request bodies over 256 KB are rejected with **413**, as is any `text` over 10,000 characters.
+- `requirements.txt` pins exact versions. **scikit-learn must stay at 1.9.1**, the version that pickled `model.joblib`. If you upgrade it, retrain with `python train.py` and commit the new `model.joblib` and `metrics.json` together.
+
+## Troubleshooting deployments
+
+- **Build fails on `pip install`:** the pinned numpy 2.5.3 and scipy 1.18.1 need **Python 3.12+**. On Render, check that `PYTHON_VERSION` is set (it's 3.13.5 in `render.yaml`).
+- **Render shows "Out of memory" / the instance restarts:** use `--workers 1` on the free plan (512 MB).
+- **The first request takes about a minute:** the free instance was asleep. This is expected.
+- **`model.joblib not found`:** the model must be committed, because the build doesn't train it. Check that `git ls-files model.joblib` lists it.
+- **`InconsistentVersionWarning` or an unpickling error at startup:** scikit-learn isn't at 1.9.1. Reinstall from `requirements.txt`.
+- **Health check failing:** `GET /api/health` should return `{"status":"ok", ...}`. Check that the server binds `0.0.0.0` and the platform's `PORT`, not `127.0.0.1:5000`.
 
 > [!NOTE]
-> Free Spaces **go to sleep after about 48 hours without visitors** and wake up on the next visit, which takes about a minute. The public app has no authentication or rate limiting (see [SECURITY.md](../SECURITY.md)), so don't paste real personal messages into a shared deployment.
-
-## Updating the Space
-
-Commit your change, then run the same command again. The Hub skips files that haven't changed, and the script removes app files from the Space that no longer exist in the repo. Hugging Face rebuilds automatically. If tracked files have uncommitted changes, the script warns you and uploads the working-tree versions.
-
-## Troubleshooting the Space
-
-- **Build error:** open the Space and click **Logs → Build**. The usual cause is a `requirements.txt` change that has no wheel for Python 3.13.
-- **"Application startup failed" / runtime error:** check **Logs → Container**. `model.joblib not found` means the model wasn't uploaded (it must be git-tracked). An `InconsistentVersionWarning` or unpickling error means scikit-learn isn't at 1.9.1.
-- **The Space shows "Starting" for a long time:** make sure the README front matter has `app_port: 7860` and the server binds `0.0.0.0` (the Dockerfile's `HOST` default).
-- **401 / 403 from the deploy script:** the token is missing, expired or read-only.
-
-## Render (current live deployment)
-
-The live demo runs on Render's free plan at https://spam-scan.onrender.com, defined by `render.yaml` in the repo root
-(Python runtime, one gunicorn worker with 4 threads, health check `/api/health`, auto-deploy on every push to `main`).
-
-- One-click deploy of your own copy: https://render.com/deploy?repo=https://github.com/Rishabh-bgp/spam-scan
-- Free instances sleep after about 15 minutes without traffic, so the first request after that can take around a minute.
-
-> Note (October 2026): Hugging Face now requires a PRO subscription to host Docker and Gradio Spaces on free CPU hardware,
-> so the Hugging Face path above only works on a PRO account.
+> A public deployment has no authentication or rate limiting (see [SECURITY.md](../SECURITY.md)). Don't paste real personal messages into a shared instance.

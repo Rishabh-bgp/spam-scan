@@ -27,7 +27,7 @@ The final verdict combines the two in a fixed order. A high-severity rule wins o
 
 ### Does it send my messages anywhere? Does it store them?
 
-No. Everything runs on your computer (`127.0.0.1`). The page loads no external scripts, fonts or trackers. The app keeps nothing on disk, and each request is analysed and forgotten. One exception: if you use the `/?q=` deep link, the message is part of the URL, so it appears in your browser history and in the server's console log.
+When you run it locally, no. Everything runs on your computer (`127.0.0.1`). The page loads no external scripts, fonts or trackers. The app keeps nothing on disk, and each request is analysed and forgotten. The **public demo** works the same way, but it runs on Render's servers, and Render keeps request logs. Don't paste real personal messages into it. One exception: if you use the `/?q=` deep link, the message is part of the URL, so it appears in your browser history and in the server's console log.
 
 ### Which languages does it support?
 
@@ -53,9 +53,9 @@ No. `model.joblib` is included. You only need to retrain if you change the featu
 
 It's about 16 MB compressed (plus about 40 MB of raw downloads), and some datasets have their own licences. `prepare_data.py` downloads everything from the original sources.
 
-### Can I deploy it publicly?
+### Is there an online version? Can I deploy my own?
 
-Not as it is. It uses Flask's development server and has no authentication or rate limiting. If you want to host it, put it behind a production WSGI server and a reverse proxy, and read [SECURITY.md](../SECURITY.md) first.
+Yes. The live demo is at [spam-scan.onrender.com](https://spam-scan.onrender.com). It runs on Render's free plan, so the first visit after about 15 idle minutes takes around a minute to wake up. To host your own copy, use the **Deploy to Render** button or the `Dockerfile` (gunicorn). Both are described in [DEPLOY.md](DEPLOY.md). Don't expose `python app.py` (the Flask development server) to the internet. There's no authentication or rate limiting either way, so read [SECURITY.md](../SECURITY.md) first.
 
 ### Can I add my bank's domain or a new scam rule?
 
