@@ -1,0 +1,19 @@
+# Render Blueprint for SPAM//SCAN (free web service).
+# One-click deploy: https://render.com/deploy?repo=https://github.com/Rishabh-bgp/spam-scan
+# The free instance has 512 MB RAM, so this runs a single gunicorn worker
+# (about 330 MB with the model loaded) without --preload.
+services:
+  - type: web
+    name: spam-scan
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --worker-class gthread --timeout 120 --access-logfile - --error-logfile -
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.5
+      - key: PYTHONUNBUFFERED
+        value: "1"
