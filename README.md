@@ -26,7 +26,7 @@ Paste a message. You get a verdict (Spam, Unsure or Not spam), the reason for it
 
 ## Live demo
 
-**Try it online:** _LIVE_URL_PLACEHOLDER_ (Hugging Face Spaces, free tier: the first visit after a quiet spell can take about a minute to wake up). See [Deploying to Hugging Face Spaces](#deploying-to-hugging-face-spaces).
+**Try it online:** https://spam-scan.onrender.com (Hugging Face Spaces, free tier: the first visit after a quiet spell can take about a minute to wake up). See [Deploying to Hugging Face Spaces](#deploying-to-hugging-face-spaces).
 
 ## Features
 
@@ -146,7 +146,7 @@ The repo ships a `Dockerfile` (gunicorn, port 7860, non-root user) and a one-com
 HF_TOKEN=hf_xxxxxxxx deploy/hf/deploy.sh      # creates/updates <your-hf-username>/spam-scan
 ```
 
-It creates the Space if it's missing, uploads the app files with the Space-specific README from `deploy/hf/README.md`, and waits for the build. Live URL: _LIVE_URL_PLACEHOLDER_. Docker, local gunicorn and troubleshooting are covered in [docs/DEPLOY.md](docs/DEPLOY.md).
+It creates the Space if it's missing, uploads the app files with the Space-specific README from `deploy/hf/README.md`, and waits for the build. Live URL: https://spam-scan.onrender.com. Docker, local gunicorn and troubleshooting are covered in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## How it works
 

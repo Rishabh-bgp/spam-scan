@@ -2,7 +2,7 @@
 
 ← Back to the [README](../README.md) · See also [TROUBLESHOOTING.md](TROUBLESHOOTING.md) and [SECURITY.md](../SECURITY.md)
 
-**Live demo:** _LIVE_URL_PLACEHOLDER_ (Hugging Face Space, free CPU tier)
+**Live demo:** https://spam-scan.onrender.com (Hugging Face Space, free CPU tier)
 
 ## Contents
 
@@ -87,3 +87,14 @@ Commit your change, then run the same command again. The Hub skips files that ha
 - **"Application startup failed" / runtime error:** check **Logs → Container**. `model.joblib not found` means the model wasn't uploaded (it must be git-tracked). An `InconsistentVersionWarning` or unpickling error means scikit-learn isn't at 1.9.1.
 - **The Space shows "Starting" for a long time:** make sure the README front matter has `app_port: 7860` and the server binds `0.0.0.0` (the Dockerfile's `HOST` default).
 - **401 / 403 from the deploy script:** the token is missing, expired or read-only.
+
+## Render (current live deployment)
+
+The live demo runs on Render's free plan at https://spam-scan.onrender.com, defined by `render.yaml` in the repo root
+(Python runtime, one gunicorn worker with 4 threads, health check `/api/health`, auto-deploy on every push to `main`).
+
+- One-click deploy of your own copy: https://render.com/deploy?repo=https://github.com/Rishabh-bgp/spam-scan
+- Free instances sleep after about 15 minutes without traffic, so the first request after that can take around a minute.
+
+> Note (October 2026): Hugging Face now requires a PRO subscription to host Docker and Gradio Spaces on free CPU hardware,
+> so the Hugging Face path above only works on a PRO account.
