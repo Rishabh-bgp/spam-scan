@@ -1,0 +1,1148 @@
+{
+  "model": "TF-IDF (word 1-2 grams + char 3-5 grams) + Logistic Regression",
+  "accuracy": 0.9808,
+  "precision": 0.9853,
+  "recall": 0.9672,
+  "f1": 0.9762,
+  "n_test": 12142,
+  "n_train": 48554,
+  "n_features": 470995,
+  "unsure_band": [
+    0.35,
+    0.65
+  ],
+  "per_dataset": {
+    "deysi": {
+      "accuracy": 0.9967,
+      "precision": 0.9964,
+      "recall": 0.9973,
+      "f1": 0.9968,
+      "n": 2131,
+      "tn": 1027,
+      "fp": 4,
+      "fn": 3,
+      "tp": 1097
+    },
+    "enron": {
+      "accuracy": 0.9794,
+      "precision": 0.9933,
+      "recall": 0.9639,
+      "f1": 0.9784,
+      "n": 6018,
+      "tn": 3092,
+      "fp": 19,
+      "fn": 105,
+      "tp": 2802
+    },
+    "hindi_mt": {
+      "accuracy": 0.9658,
+      "precision": 0.8824,
+      "recall": 0.8333,
+      "f1": 0.8571,
+      "n": 1022,
+      "tn": 882,
+      "fp": 14,
+      "fn": 21,
+      "tp": 105
+    },
+    "india_2011": {
+      "accuracy": 0.969,
+      "precision": 0.9945,
+      "recall": 0.943,
+      "f1": 0.9681,
+      "n": 387,
+      "tn": 193,
+      "fp": 1,
+      "fn": 11,
+      "tp": 182
+    },
+    "india_sms": {
+      "accuracy": 0.985,
+      "precision": 0.9667,
+      "recall": 0.9932,
+      "f1": 0.9797,
+      "n": 401,
+      "tn": 250,
+      "fp": 5,
+      "fn": 1,
+      "tp": 145
+    },
+    "sms": {
+      "accuracy": 0.9786,
+      "precision": 0.9,
+      "recall": 0.9286,
+      "f1": 0.9141,
+      "n": 1026,
+      "tn": 887,
+      "fp": 13,
+      "fn": 9,
+      "tp": 117
+    },
+    "spamassassin": {
+      "accuracy": 0.9767,
+      "precision": 0.9556,
+      "recall": 0.9642,
+      "f1": 0.9599,
+      "n": 1157,
+      "tn": 807,
+      "fp": 15,
+      "fn": 12,
+      "tp": 323
+    }
+  },
+  "groups": {
+    "all": {
+      "accuracy": 0.9808,
+      "precision": 0.9853,
+      "recall": 0.9672,
+      "f1": 0.9762,
+      "n": 12142,
+      "tn": 7138,
+      "fp": 71,
+      "fn": 162,
+      "tp": 4771
+    },
+    "sms_all": {
+      "accuracy": 0.9736,
+      "precision": 0.9433,
+      "recall": 0.9289,
+      "f1": 0.9361,
+      "n": 2836,
+      "tn": 2212,
+      "fp": 33,
+      "fn": 42,
+      "tp": 549
+    },
+    "email_all": {
+      "accuracy": 0.979,
+      "precision": 0.9892,
+      "recall": 0.9639,
+      "f1": 0.9764,
+      "n": 7175,
+      "tn": 3899,
+      "fp": 34,
+      "fn": 117,
+      "tp": 3125
+    }
+  },
+  "datasets": {
+    "deysi": {
+      "name": "Deysi/spam-detection-dataset",
+      "url": "https://huggingface.co/datasets/Deysi/spam-detection-dataset",
+      "type": "Mixed short texts/posts, English",
+      "messages": 10653,
+      "spam": 5498,
+      "ham": 5155
+    },
+    "enron": {
+      "name": "Enron-Spam (preprocessed by MWiechmann)",
+      "url": "https://github.com/MWiechmann/enron_spam_data",
+      "type": "Email, English",
+      "messages": 30089,
+      "spam": 14537,
+      "ham": 15552
+    },
+    "hindi_mt": {
+      "name": "SMS Spam Multilingual Collection (Hindi column)",
+      "url": "https://huggingface.co/datasets/dbarbedillo/SMS_Spam_Multilingual_Collection_Dataset",
+      "type": "SMS, Hindi Devanagari, machine-translated from UCI",
+      "messages": 5107,
+      "spam": 630,
+      "ham": 4477
+    },
+    "india_2011": {
+      "name": "IIIT-Delhi crowdsourced Indian SMS (Yadav et al. 2011)",
+      "url": "https://github.com/princebari/-SMS-Spam-Classification-on-Indian-Dataset-A-Crowdsourced-Collection-of-Hindi-and-English-Messages",
+      "type": "SMS, Indian English + Hinglish",
+      "messages": 1932,
+      "spam": 965,
+      "ham": 967
+    },
+    "india_sms": {
+      "name": "Indian Telecom SMS Spam Collection",
+      "url": "https://github.com/junioralive/india-spam-sms-classification",
+      "type": "SMS, Indian English (+ some Hinglish)",
+      "messages": 2001,
+      "spam": 728,
+      "ham": 1273
+    },
+    "sms": {
+      "name": "UCI SMS Spam Collection",
+      "url": "https://archive.ics.uci.edu/dataset/228/sms+spam+collection",
+      "type": "SMS, English (Singapore/UK)",
+      "messages": 5129,
+      "spam": 629,
+      "ham": 4500
+    },
+    "spamassassin": {
+      "name": "Apache SpamAssassin public corpus",
+      "url": "https://spamassassin.apache.org/old/publiccorpus/",
+      "type": "Email, English (headers stripped)",
+      "messages": 5785,
+      "spam": 1677,
+      "ham": 4108
+    }
+  },
+  "probes": {
+    "general": {
+      "total": 32,
+      "ml_correct": 29,
+      "final_correct": 31,
+      "final_unsure": 1,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.398,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "prize_claim"
+          ],
+          "safe_signal": [],
+          "text": "congrats you won a lottery"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.943,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "otp_notice"
+          ],
+          "text": "Your OTP for login is 482913. Do not share it with anyone. It is valid for 10 minutes."
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 1.0,
+          "ml_correct": false,
+          "final_verdict": "unsure",
+          "red_flags": [],
+          "safe_signal": [
+            "bank_txn_alert"
+          ],
+          "text": "Rs 1,250.00 debited from your HDFC Bank a/c XX4521 on 05-10-26 to VPA swiggy@icici. Not you? Call 18002586161."
+        }
+      ]
+    },
+    "misspelled": {
+      "total": 26,
+      "ml_correct": 20,
+      "final_correct": 22,
+      "final_unsure": 3,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.298,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "prize_claim"
+          ],
+          "safe_signal": [],
+          "text": "congrats u r the winer of our lucky draw, cal now to clame ur prize"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.2,
+          "ml_correct": false,
+          "final_verdict": "unsure",
+          "red_flags": [
+            "suspicious_link"
+          ],
+          "safe_signal": [],
+          "text": "Ur acount has been suspnded. Verfy ur detials imediately at http://secure-bank-verfy.com"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.19,
+          "ml_correct": false,
+          "final_verdict": "unsure",
+          "red_flags": [
+            "kyc_block"
+          ],
+          "safe_signal": [],
+          "text": "Dear costumer ur KYC is expird, updte now or ur acount wil be blokd"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.217,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [],
+          "text": "Hot singels in ur area want to met u tonite, reply YES"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.455,
+          "ml_correct": false,
+          "final_verdict": "unsure",
+          "red_flags": [],
+          "safe_signal": [],
+          "text": "Claime ur reward now!! limted time ofer, dont mis out"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.09,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "lookalike_domain",
+            "suspicious_link"
+          ],
+          "safe_signal": [],
+          "text": "Ur paypal acc is lockd. Plz login to unlok: paypa1-support.net"
+        }
+      ]
+    },
+    "hinglish": {
+      "total": 26,
+      "ml_correct": 22,
+      "final_correct": 26,
+      "final_unsure": 0,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.413,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "utility_disconnect"
+          ],
+          "safe_signal": [],
+          "text": "Aapka bijli connection aaj raat 9 baje kaat diya jayega. Turant is number par call karein"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.181,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "kyc_block",
+            "suspicious_link"
+          ],
+          "safe_signal": [],
+          "text": "Aapka PAN card block ho gaya hai. Turant update karein: http://pan-kyc-update.in"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.285,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "prize_claim"
+          ],
+          "safe_signal": [],
+          "text": "बधाई हो! आपने 10 लाख रुपये की लॉटरी जीती है। इनाम पाने के लिए अभी कॉल करें।"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.274,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "kyc_block"
+          ],
+          "safe_signal": [],
+          "text": "आपका बैंक खाता बंद कर दिया जाएगा। अपना KYC तुरंत अपडेट करें, लिंक पर क्लिक करें।"
+        }
+      ]
+    },
+    "india:upi_phishing": {
+      "total": 6,
+      "ml_correct": 4,
+      "final_correct": 5,
+      "final_unsure": 1,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.319,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "upi_pin_receive"
+          ],
+          "safe_signal": [],
+          "text": "Congrats! U got Rs 999 GPay scratch card rewrd. Aprove the colect request and entr UPI pin to get money in ur acount"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.984,
+          "ml_correct": false,
+          "final_verdict": "unsure",
+          "red_flags": [],
+          "safe_signal": [
+            "upi_confirmation"
+          ],
+          "text": "Rs 450.00 sent to Ramesh Kumar via UPI on 06-Oct. UPI Ref 427815536201. Not you? Call 1800-111-109 - SBI"
+        }
+      ]
+    },
+    "india:kyc_alert": {
+      "total": 6,
+      "ml_correct": 3,
+      "final_correct": 5,
+      "final_unsure": 0,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.441,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "kyc_block",
+            "lookalike_domain",
+            "suspicious_link"
+          ],
+          "safe_signal": [],
+          "text": "Priy grahak, aapka HDFC account ka KYC expire ho gaya hai. Turant is link par update karein warna account band: hdfc-kyc.in/verify"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.995,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [],
+          "safe_signal": [],
+          "text": "Dear Customer, as per RBI guidelines, please complete your periodic KYC update by visiting your nearest HDFC Bank branch. HDFC Bank never asks for OTP or PIN."
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.8,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "kyc_complete"
+          ],
+          "text": "Your KYC has been successfully verified. Your Zerodha account is now active. Happy investing!"
+        }
+      ]
+    },
+    "india:courier_fee": {
+      "total": 6,
+      "ml_correct": 4,
+      "final_correct": 6,
+      "final_unsure": 0,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.346,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "parcel_fee"
+          ],
+          "safe_signal": [],
+          "text": "DHL: A package addressed to you contains illegal items and has been seized. Press 1 to speak to our officer or pay the clearance charge."
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.965,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link",
+            "delivery_update"
+          ],
+          "text": "Your Delhivery shipment AWB 1234567890 is out for delivery today. Track: https://www.delhivery.com/track"
+        }
+      ]
+    },
+    "india:digital_arrest": {
+      "total": 6,
+      "ml_correct": 4,
+      "final_correct": 6,
+      "final_unsure": 0,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.393,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "arrest_payment"
+          ],
+          "safe_signal": [],
+          "text": "Your mobile number is linked to illegal activities. TRAI will disconnect it in 2 hours and a police case will be filed. Press 9 to talk to the officer."
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.944,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link",
+            "echallan_official"
+          ],
+          "text": "Your traffic e-challan of Rs 500 for vehicle DL3CAB1234 can be paid at https://echallan.parivahan.gov.in"
+        }
+      ]
+    },
+    "india:fake_customer_care": {
+      "total": 5,
+      "ml_correct": 5,
+      "final_correct": 5,
+      "final_unsure": 0,
+      "misses": []
+    },
+    "india:ceo_fraud_bec": {
+      "total": 5,
+      "ml_correct": 2,
+      "final_correct": 5,
+      "final_unsure": 0,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.371,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "urgent_wire_transfer",
+            "emergency_money"
+          ],
+          "safe_signal": [],
+          "text": "Subject: Urgent - confidential\n\nHi, I need you to process a wire transfer of $48,500 to a new vendor today. I'm in a board meeting and can't talk, just reply when done. Keep this confidential. - Sent from CEO's iPhone"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.365,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "urgent_wire_transfer"
+          ],
+          "safe_signal": [],
+          "text": "Subject: Quick task\n\nAre you at your desk? I need you to buy 10 Google Play gift cards worth Rs 5,000 each for a client. Send me the codes asap, I will reimburse you. Regards, MD"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.859,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "expense_approval"
+          ],
+          "text": "Subject: Expense reimbursement\n\nYour expense claim #EXP-2291 for Rs 3,450 has been approved and will be paid with your October salary."
+        }
+      ]
+    },
+    "india:job_fee": {
+      "total": 6,
+      "ml_correct": 5,
+      "final_correct": 6,
+      "final_unsure": 0,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.38,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "job_fee"
+          ],
+          "safe_signal": [],
+          "text": "Hiring data entry operators, salry 25k per mnth, no intervew. Pay 999 refundable securty deposit to get the ofer leter"
+        }
+      ]
+    },
+    "india:emergency_money": {
+      "total": 6,
+      "ml_correct": 2,
+      "final_correct": 6,
+      "final_unsure": 0,
+      "misses": [
+        {
+          "expected": "spam",
+          "ml_probability": 0.08,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "emergency_money"
+          ],
+          "safe_signal": [],
+          "text": "Papa accident ho gaya hai, hospital mein hu. Turant 20,000 is number pe bhejo, phone kharab hai, call mat karna"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.057,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "emergency_money"
+          ],
+          "safe_signal": [],
+          "text": "Mom its me, I lost my phone and this is my new number. I need Rs 15,000 urgently for an emergency, please send to this UPI id now, I'll explain later"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.358,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "arrest_payment",
+            "emergency_money"
+          ],
+          "safe_signal": [],
+          "text": "Uncle aapka beta police station mein hai, case khatam karne ke liye abhi 50 hazar Google Pay karo warna jail jayega"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.004,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "emergency_money"
+          ],
+          "safe_signal": [],
+          "text": "Hi beta, I am in trubble, plz send 10000 to this acount urjently, dont tell anyone, wil return tmrw"
+        }
+      ]
+    },
+    "india:alert_lookalike_scams": {
+      "total": 8,
+      "ml_correct": 8,
+      "final_correct": 8,
+      "final_unsure": 0,
+      "misses": []
+    },
+    "india:official_domains": {
+      "total": 29,
+      "ml_correct": 19,
+      "final_correct": 28,
+      "final_unsure": 1,
+      "misses": [
+        {
+          "expected": "ham",
+          "ml_probability": 1.0,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link",
+            "bank_txn_alert"
+          ],
+          "text": "Rs 1,250.00 debited from your HDFC Bank a/c XX4521 on 05-10-26 to VPA swiggy@icici. Not you? Report at https://www.hdfcbank.com/fraud or call 18002586161."
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.996,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link",
+            "upi_confirmation"
+          ],
+          "text": "Rs 450.00 sent to Ramesh Kumar via UPI on 06-Oct. UPI Ref 427815536201. Not you? Visit https://sbi.bank.in or call 1800-111-109 - SBI"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.988,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link",
+            "delivery_update"
+          ],
+          "text": "Your Amazon order #405-1234567 has been delivered. Rate your delivery at https://www.amazon.in/your-orders"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.998,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link",
+            "bank_txn_alert"
+          ],
+          "text": "Rs 2,000.00 credited to your ICICI Bank a/c XX7788 on 06-Oct by NEFT. Avl Bal Rs 12,450.10. Details: https://www.icicibank.com"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.775,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link"
+          ],
+          "text": "Your ITR for AY 2026-27 has been processed. Check the status at https://www.incometax.gov.in"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.983,
+          "ml_correct": false,
+          "final_verdict": "unsure",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link"
+          ],
+          "text": "Aapka Jio recharge Rs 299 safal raha. Validity 28 din. Details: https://www.jio.com/selfcare"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.991,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link",
+            "otp_notice"
+          ],
+          "text": "Your OTP for SBI login is 482913. Do not share it with anyone. @onlinesbi.sbi #482913"
+        },
+        {
+          "expected": "ham",
+          "ml_probability": 0.583,
+          "ml_correct": false,
+          "final_verdict": "ham",
+          "red_flags": [],
+          "safe_signal": [
+            "official_link",
+            "delivery_update"
+          ],
+          "text": "Your Blue Dart shipment 81234567890 has been dispatched and will be delivered by Friday. Track at https://www.bluedart.com"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.335,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "lookalike_domain"
+          ],
+          "safe_signal": [],
+          "text": "Your ITR refund has been processed. Check the status at https://incometax-gov.in/refund"
+        },
+        {
+          "expected": "spam",
+          "ml_probability": 0.495,
+          "ml_correct": false,
+          "final_verdict": "spam",
+          "red_flags": [
+            "lookalike_domain"
+          ],
+          "safe_signal": [],
+          "text": "HDFC Bank: your netbanking will be deactivated. Login to continue: hdfcbnk.com/login"
+        }
+      ]
+    }
+  },
+  "top_spam_features": [
+    {
+      "feature": "your",
+      "type": "word",
+      "weight": 6.264
+    },
+    {
+      "feature": "zznum",
+      "type": "word",
+      "weight": 6.159
+    },
+    {
+      "feature": "to zznum",
+      "type": "word",
+      "weight": 5.923
+    },
+    {
+      "feature": "re zznum",
+      "type": "word",
+      "weight": 5.741
+    },
+    {
+      "feature": "zznum क",
+      "type": "word",
+      "weight": 5.642
+    },
+    {
+      "feature": "zzphone",
+      "type": "word",
+      "weight": 5.53
+    },
+    {
+      "feature": "call zzphone",
+      "type": "word",
+      "weight": 5.086
+    },
+    {
+      "feature": "sms",
+      "type": "word",
+      "weight": 4.975
+    },
+    {
+      "feature": "zznum zzcaps",
+      "type": "word",
+      "weight": 4.97
+    },
+    {
+      "feature": "click zzurl",
+      "type": "word",
+      "weight": 4.91
+    },
+    {
+      "feature": "free",
+      "type": "word",
+      "weight": 4.706
+    },
+    {
+      "feature": "zznum तक",
+      "type": "word",
+      "weight": 4.678
+    },
+    {
+      "feature": "our",
+      "type": "word",
+      "weight": 4.567
+    },
+    {
+      "feature": "http",
+      "type": "word",
+      "weight": 4.548
+    },
+    {
+      "feature": "for you",
+      "type": "word",
+      "weight": 4.42
+    },
+    {
+      "feature": "~~␣",
+      "type": "char",
+      "weight": 4.411
+    },
+    {
+      "feature": "re",
+      "type": "word",
+      "weight": 4.357
+    },
+    {
+      "feature": "click",
+      "type": "word",
+      "weight": 4.339
+    },
+    {
+      "feature": "zzphone zzcaps",
+      "type": "word",
+      "weight": 4.079
+    },
+    {
+      "feature": "s!␣",
+      "type": "char",
+      "weight": 4.067
+    }
+  ],
+  "top_safe_features": [
+    {
+      "feature": "i",
+      "type": "word",
+      "weight": -11.461
+    },
+    {
+      "feature": "enron",
+      "type": "word",
+      "weight": -7.987
+    },
+    {
+      "feature": "␣>␣",
+      "type": "char",
+      "weight": -6.898
+    },
+    {
+      "feature": "␣i␣",
+      "type": "char",
+      "weight": -6.113
+    },
+    {
+      "feature": "url zzurl",
+      "type": "word",
+      "weight": -4.885
+    },
+    {
+      "feature": "zzurl date",
+      "type": "word",
+      "weight": -4.579
+    },
+    {
+      "feature": "url",
+      "type": "word",
+      "weight": -4.545
+    },
+    {
+      "feature": "nro",
+      "type": "char",
+      "weight": -4.399
+    },
+    {
+      "feature": "enron",
+      "type": "char",
+      "weight": -4.348
+    },
+    {
+      "feature": "nron",
+      "type": "char",
+      "weight": -4.348
+    },
+    {
+      "feature": "␣enr",
+      "type": "char",
+      "weight": -4.343
+    },
+    {
+      "feature": "data",
+      "type": "word",
+      "weight": -4.337
+    },
+    {
+      "feature": "␣enro",
+      "type": "char",
+      "weight": -4.321
+    },
+    {
+      "feature": "enro",
+      "type": "char",
+      "weight": -4.305
+    },
+    {
+      "feature": "enr",
+      "type": "char",
+      "weight": -4.249
+    },
+    {
+      "feature": "म",
+      "type": "word",
+      "weight": -4.246
+    },
+    {
+      "feature": "if",
+      "type": "word",
+      "weight": -3.975
+    },
+    {
+      "feature": "␣--",
+      "type": "char",
+      "weight": -3.927
+    },
+    {
+      "feature": "␣[␣",
+      "type": "char",
+      "weight": -3.826
+    },
+    {
+      "feature": "...",
+      "type": "char",
+      "weight": -3.621
+    }
+  ],
+  "top_spam_words": [
+    {
+      "feature": "your",
+      "type": "word",
+      "weight": 6.264
+    },
+    {
+      "feature": "zznum",
+      "type": "word",
+      "weight": 6.159
+    },
+    {
+      "feature": "to zznum",
+      "type": "word",
+      "weight": 5.923
+    },
+    {
+      "feature": "re zznum",
+      "type": "word",
+      "weight": 5.741
+    },
+    {
+      "feature": "zznum क",
+      "type": "word",
+      "weight": 5.642
+    },
+    {
+      "feature": "zzphone",
+      "type": "word",
+      "weight": 5.53
+    },
+    {
+      "feature": "call zzphone",
+      "type": "word",
+      "weight": 5.086
+    },
+    {
+      "feature": "sms",
+      "type": "word",
+      "weight": 4.975
+    },
+    {
+      "feature": "zznum zzcaps",
+      "type": "word",
+      "weight": 4.97
+    },
+    {
+      "feature": "click zzurl",
+      "type": "word",
+      "weight": 4.91
+    },
+    {
+      "feature": "free",
+      "type": "word",
+      "weight": 4.706
+    },
+    {
+      "feature": "zznum तक",
+      "type": "word",
+      "weight": 4.678
+    },
+    {
+      "feature": "our",
+      "type": "word",
+      "weight": 4.567
+    },
+    {
+      "feature": "http",
+      "type": "word",
+      "weight": 4.548
+    },
+    {
+      "feature": "for you",
+      "type": "word",
+      "weight": 4.42
+    },
+    {
+      "feature": "re",
+      "type": "word",
+      "weight": 4.357
+    },
+    {
+      "feature": "click",
+      "type": "word",
+      "weight": 4.339
+    },
+    {
+      "feature": "zzphone zzcaps",
+      "type": "word",
+      "weight": 4.079
+    },
+    {
+      "feature": "in zznum",
+      "type": "word",
+      "weight": 4.024
+    },
+    {
+      "feature": "dating",
+      "type": "word",
+      "weight": 3.856
+    }
+  ],
+  "top_safe_words": [
+    {
+      "feature": "i",
+      "type": "word",
+      "weight": -11.461
+    },
+    {
+      "feature": "enron",
+      "type": "word",
+      "weight": -7.987
+    },
+    {
+      "feature": "url zzurl",
+      "type": "word",
+      "weight": -4.885
+    },
+    {
+      "feature": "zzurl date",
+      "type": "word",
+      "weight": -4.579
+    },
+    {
+      "feature": "url",
+      "type": "word",
+      "weight": -4.545
+    },
+    {
+      "feature": "data",
+      "type": "word",
+      "weight": -4.337
+    },
+    {
+      "feature": "म",
+      "type": "word",
+      "weight": -4.246
+    },
+    {
+      "feature": "if",
+      "type": "word",
+      "weight": -3.975
+    },
+    {
+      "feature": "u",
+      "type": "word",
+      "weight": -3.603
+    },
+    {
+      "feature": "wrote",
+      "type": "word",
+      "weight": -3.589
+    },
+    {
+      "feature": "dataset",
+      "type": "word",
+      "weight": -3.466
+    },
+    {
+      "feature": "ह",
+      "type": "word",
+      "weight": -3.433
+    },
+    {
+      "feature": "at zznum",
+      "type": "word",
+      "weight": -3.384
+    },
+    {
+      "feature": "vince",
+      "type": "word",
+      "weight": -3.36
+    },
+    {
+      "feature": "enron com",
+      "type": "word",
+      "weight": -3.172
+    },
+    {
+      "feature": "in",
+      "type": "word",
+      "weight": -3.059
+    },
+    {
+      "feature": "date zznum",
+      "type": "word",
+      "weight": -3.033
+    },
+    {
+      "feature": "cnet",
+      "type": "word",
+      "weight": -3.006
+    },
+    {
+      "feature": "zznum zzurl",
+      "type": "word",
+      "weight": -2.997
+    },
+    {
+      "feature": "louise",
+      "type": "word",
+      "weight": -2.969
+    }
+  ],
+  "sklearn_version": "1.9.1",
+  "trained_at": "2026-10-07T17:22:23+00:00"
+}

@@ -1,0 +1,4 @@
+# Only needed to rebuild data/combined.csv.gz from the raw downloads (python prepare_data.py)
+-r requirements.txt
+pandas>=2.0
+pyarrow>=14

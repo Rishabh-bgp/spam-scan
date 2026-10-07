@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How this model works · Spam Checker</title>
+{% include "base_style.html" %}
+<style>
+  .card + .card { margin-top: 16px; }
+  .card h2:first-child { margin-top: 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .two { grid-template-columns: 1fr; } }
+  .pos { color: var(--spam); text-shadow: 0 0 6px rgba(255,61,127,.45); } .neg { color: var(--ham); text-shadow: 0 0 6px rgba(43,255,163,.4); }
+  .pill { display: inline-block; font-size: .66rem; padding: 1px 7px; border-radius: 3px; border: 1px solid; text-transform: uppercase; letter-spacing: .08em;
+          color: var(--cyan); border-color: rgba(0,240,255,.4); }
+  .pill.high { color: var(--spam); border-color: rgba(255,61,127,.5); background: var(--spam-bg); }
+  .pill.medium { color: var(--yellow); border-color: rgba(242,255,61,.5); background: var(--unsure-bg); }
+  details { margin-top: 6px; font-size: .8rem; } summary { cursor: pointer; color: var(--cyan); }
+  summary:hover { text-shadow: var(--glow-c); }
+  .card p, .card li { font-size: .9rem; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  b { color: #fff; }
+  i { color: var(--muted); }
+</style>
+</head>
+<body>
+{% include "fx.html" %}
+<main>
+  <header class="term">
+    <div><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="brand" aria-hidden="true">SPAM<span class="sl">//</span>SCAN<span class="ver">v2</span></span></div>
+    <nav aria-label="Primary"><a href="/">[ back_to_scanner ]</a></nav>
+  </header>
+  <p class="statusline"><span class="ok">●</span> cat /docs/how_it_works.md &nbsp;|&nbsp; datasets: <b>{{ fx.datasets }}</b> &nbsp;|&nbsp; features: <b>{{ "{:,}".format(fx.features) }}</b> &nbsp;|&nbsp; rules: <b>{{ fx.rules }}</b>+<b>{{ fx.safe }}</b></p>
+  <h1 style="margin:0 0 4px;font-size:1.5rem;color:var(--cyan);text-shadow:var(--glow-c)">How this model works</h1>
+  <p class="subtitle">Everything below is generated from <code>metrics.json</code>, which <code>train.py</code> writes.</p>
+
+  <div class="card">
+    <h2 style="margin-top:0">1. The two independent parts</h2>
+    <p><b>ML model:</b> {{ m.model }}. Before anything else, the text is normalised: URLs, e-mail addresses,
+    phone numbers, currency symbols and numbers become placeholder tokens
+    (<code>zzurl</code>, <code>zzemail</code>, <code>zzphone</code>, <code>zzmoney</code>, <code>zznum</code>), and messages with
+    several ALL-CAPS words get a <code>zzcaps</code> token. Two kinds of features are extracted:
+    word and two-word phrases, and <b>character n-grams</b> (3–5 letters inside words). The character n-grams help with
+    misspellings (<i>milion</i>, <i>winer</i>), obfuscation (<i>fr33</i>) and Hinglish spelling variants.
+    Each feature has a learned weight. The spam probability is
+    <code>sigmoid(bias + Σ tfidf × weight)</code>, so every feature's contribution can be shown exactly. That's what the
+    highlighting on the main page shows. The model has {{ "{:,}".format(m.n_features) }} features and was trained on
+    {{ "{:,}".format(m.n_train) }} messages (scikit-learn {{ m.sklearn_version }}).</p>
+    <p><b>Red-flag rules:</b> hand-written, named patterns for common scams, mostly Indian ones.
+    They are <i>not</i> learned from data, and each one shows what it matched.</p>
+    <p><b>Safe signals:</b> hand-written patterns that recognise the <i>format</i> of genuine transactional alerts
+    (bank debit/credit alerts, UPI confirmations with a reference number, OTP texts that say "do not share" and have no link
+    other than the bank's own domain,
+    courier status updates, e-challans that link only to parivahan.gov.in, KYC-complete notices, expense/PO approvals).
+    These exist because the ML model often scores genuine alerts as spam (see limitations).</p>
+    <p><b>Official-domain check:</b> real banks, payment apps, telecoms, couriers and government services only link to their
+    <i>own</i> domains. Every link's real host is checked against an allowlist of {{ official|length }} official domains
+    (plus any <code>*.gov.in</code> and <code>*.bank.in</code>). A link to an official domain is a good sign; a host that uses a
+    brand name or a typo of one without being official (<code>sbi-kyc-update.com</code>, <code>hdfcbank.com.verify.xyz</code>,
+    <code>1cici.co</code>) is a <span class="pill high">high</span> red flag.</p>
+    <p><b>How the final verdict is decided:</b></p>
+    <ol>
+      <li>If a safe signal matches <b>and no red flag fired and no blocker applies</b>: <b>Not spam (standard alert)</b>,
+        or <b>Unsure</b> if the ML score is ≥ 95%. Exception: if the message matches a standard alert format <b>and</b> every
+        link goes to an official domain, it is <b>Not spam (standard alert + official link)</b> even when ML is ≥ 95%.</li>
+      <li>ML spam probability ≥ {{ (high*100)|int }}% → <b>Spam</b>.</li>
+      <li>Otherwise, if any <span class="pill high">high</span> red flag fired → <b>Spam</b>. These rules override the ML score.</li>
+      <li>Otherwise, if a <span class="pill medium">medium</span> red flag fired and ML ≥ {{ (low*100)|int }}% → <b>Spam</b>.</li>
+      <li>Otherwise, if ML is between {{ (low*100)|int }}% and {{ (high*100)|int }}%, or a medium flag fired → <b>Unsure</b>.</li>
+      <li>Otherwise → <b>Not spam</b>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">2. Training data (real, public datasets only)</h2>
+    <div class="table-wrap"><table>
+      <tr><th>Dataset</th><th>Type</th><th class="num">Messages</th><th class="num">Spam</th><th class="num">Ham</th></tr>
+      {% for k, d in m.datasets.items() %}
+      <tr><td><a href="{{ d.url }}">{{ d.name }}</a> <span class="muted mono">({{ k }})</span></td><td>{{ d.type }}</td>
+          <td class="num">{{ "{:,}".format(d.messages) }}</td><td class="num">{{ "{:,}".format(d.spam) }}</td><td class="num">{{ "{:,}".format(d.ham) }}</td></tr>
+      {% endfor %}
+    </table></div>
+    <p class="muted" style="font-size:.85rem">Counts are after removing exact duplicates across all datasets. Email headers are stripped; only the subject and body are kept.
+    Each dataset is split 80/20 (stratified, seed 42), so every dataset has its own held-out test set.</p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">3. Held-out test results (threshold 50%)</h2>
+    <div class="table-wrap"><table>
+      <tr><th>Test set</th><th class="num">n</th><th class="num">Accuracy</th><th class="num">Precision</th><th class="num">Recall</th><th class="num">F1</th></tr>
+      {% for k, r in m.per_dataset.items() %}
+      <tr><td class="mono">{{ k }}</td><td class="num">{{ "{:,}".format(r.n) }}</td><td class="num">{{ "%.3f"|format(r.accuracy) }}</td>
+          <td class="num">{{ "%.3f"|format(r.precision) }}</td><td class="num">{{ "%.3f"|format(r.recall) }}</td><td class="num">{{ "%.3f"|format(r.f1) }}</td></tr>
+      {% endfor %}
+      {% for k, r in m.groups.items() %}
+      <tr style="font-weight:600"><td class="mono">{{ k }}</td><td class="num">{{ "{:,}".format(r.n) }}</td><td class="num">{{ "%.3f"|format(r.accuracy) }}</td>
+          <td class="num">{{ "%.3f"|format(r.precision) }}</td><td class="num">{{ "%.3f"|format(r.recall) }}</td><td class="num">{{ "%.3f"|format(r.f1) }}</td></tr>
+      {% endfor %}
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">4. Robustness probes (hand-written tests, never used for training)</h2>
+    <p class="muted" style="font-size:.88rem">These are varied messages written to stress the model: typos, Hinglish/Hindi, Indian scam types and
+    legitimate look-alikes (bank OTPs, courier updates, job recruiter mails). The red-flag rules were written while
+    looking at these probes, so the "ML + red flags" column is optimistic. The "ML only" column is the fairer test of the model.</p>
+    <table>
+      <tr><th>Group</th><th class="num">Probes</th><th class="num">ML only</th><th class="num">ML + red flags</th></tr>
+      {% for g, r in m.probes.items() %}
+      <tr><td>{{ g }}{% if r.misses %}<details><summary>{{ r.misses|length }} message(s) with a miss</summary><ul>
+            {% for x in r.misses %}<li>expected <b>{{ x.expected }}</b>, ML {{ "%.0f"|format(x.ml_probability*100) }}%{% if not x.ml_correct %} (ML wrong){% endif %}, final <b>{{ x.final_verdict }}</b>: <i>{{ x.text[:140] }}</i></li>{% endfor %}
+          </ul></details>{% endif %}</td>
+          <td class="num">{{ r.total }}</td><td class="num">{{ r.ml_correct }}/{{ r.total }}</td><td class="num">{{ r.final_correct }}/{{ r.total }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">5. Strongest features overall (learned weights)</h2>
+    <div class="two">
+      <div><h3 class="pos">Top 20 toward spam</h3><table>
+        {% for f in m.top_spam_features %}<tr><td><code>{{ f.feature }}</code> <span class="muted">{{ f.type }}</span></td><td class="num pos">+{{ "%.2f"|format(f.weight) }}</td></tr>{% endfor %}
+      </table></div>
+      <div><h3 class="neg">Top 20 toward not spam</h3><table>
+        {% for f in m.top_safe_features %}<tr><td><code>{{ f.feature }}</code> <span class="muted">{{ f.type }}</span></td><td class="num neg">{{ "%.2f"|format(f.weight) }}</td></tr>{% endfor %}
+      </table></div>
+    </div>
+    <div class="two">
+      <div><h3 class="pos">Top 20 spam words/phrases</h3><table>
+        {% for f in m.top_spam_words %}<tr><td><code>{{ f.feature }}</code></td><td class="num pos">+{{ "%.2f"|format(f.weight) }}</td></tr>{% endfor %}
+      </table></div>
+      <div><h3 class="neg">Top 20 safe words/phrases</h3><table>
+        {% for f in m.top_safe_words %}<tr><td><code>{{ f.feature }}</code></td><td class="num neg">{{ "%.2f"|format(f.weight) }}</td></tr>{% endfor %}
+      </table></div>
+    </div>
+    <p class="muted" style="font-size:.85rem">␣ marks a word boundary in character n-grams. Words like <code>enron</code> or <code>vince</code> come from
+    the Enron corpus. They show that the model partly learns dataset-specific vocabulary.</p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">6. Red-flag rules</h2>
+    <p class="muted">The KYC / account / SIM block rule has two forms. With a link or phone number it is <span class="pill high">high</span> (always Spam).
+      With no link or number, a block/suspension threat plus a KYC/PAN/Aadhaar update demand (for example "Your SBI account will be blocked today,
+      update KYC" or "Aapka account block ho jayega, KYC update karein") is <span class="pill medium">medium</span>: Spam if the ML score is at least 35%,
+      otherwise Unsure. Misspellings (blokd, suspnded, updte, expird) and Hinglish (band / block / suspend ho jayega) are covered. It does not fire on
+      "your KYC is verified/complete" notices, and the no-link form is switched off when the message mentions a branch or visiting one.
+      If the only link is to the bank's <b>official</b> domain and there is no phone number, the rule is <span class="pill medium">medium</span> instead of high.</p>
+    <p class="muted"><b>How domains are matched.</b> Only the end of a web address decides who owns it. <code>netbanking.hdfcbank.com</code>
+      is HDFC Bank (a real sub-domain), but <code>hdfcbank.com.evil.xyz</code> belongs to <code>evil.xyz</code>, <code>hdfcbank-kyc.com</code>
+      is a different site, and in <code>http://onlinesbi.sbi@evil.xyz</code> everything before "@" is decoration. Look-alikes are found by brand
+      names inside the host (short names like <i>sbi</i>, <i>pnb</i>, <i>rbi</i>, <i>jio</i> only at the start or end of a word, so "lesbian" or
+      "turbine" don't count), common digit swaps (0→o, 1→i/l, 3→e, 5→s, rn→m) and, for long names like <i>hdfcbank</i> or <i>flipkart</i>,
+      one typo (hdcfbank, flipkrat). The <span class="pill medium">medium</span> "brand named, link goes elsewhere" rule needs the brand name and a
+      call to action (verify, claim, pay, track...) within about 200 characters of an unrelated link or a URL shortener.</p>
+    <table>
+      {% for r in rules %}<tr><td style="width:32%"><b>{{ r.title }}</b><br>{% for sv in r.severity.split('/') %}<span class="pill {{ sv }}">{{ sv }}</span> {% endfor %} <span class="muted mono">{{ r.id }}</span></td><td>{{ r.explanation }}</td></tr>{% endfor %}
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">7. Safe signals ("looks like a standard transactional alert")</h2>
+    <table>
+      {% for r in safe_rules %}<tr><td style="width:32%"><b>{{ r.title }}</b><br><span class="muted mono">{{ r.id }}</span></td><td>{{ r.explanation }}</td></tr>{% endfor %}
+    </table>
+    <p style="font-size:.9rem"><b>A safe signal is never applied if any of these is true:</b> any red flag fired; the message links to a
+    domain that isn't on the official list ({{ official|length }} bank, payment, telecom, courier, shop and government domains, listed in
+    <code>domains.py</code> and below);
+    it uses a shortened link; it asks you to enter or share a PIN, OTP, password or card details; it asks for a payment or fee;
+    or it urges you to call a number to avoid blocking. Some rules have extra conditions. For example, an OTP message must contain no link
+    except to the bank's official domain, the official-link signal is not applied if the message also gives a mobile number,
+    and a "KYC verified" notice must not mention pending, expired, blocked or click. The UI always says why a safe signal was or wasn't applied.</p>
+    <p style="font-size:.9rem"><b>⚠️ Scammers may imitate this format.</b> A message that copies a real bank alert word for word, with no link or request,
+    would be marked Not spam. That's usually harmless, because a message that asks for nothing can't steal anything, but you should still verify
+    unexpected debits in your bank app, not through numbers in an SMS. The probe group <code>india:alert_lookalike_scams</code>
+    checks that common imitations (alert format + PIN request, fee, look-alike link, "call to block") are still caught, and
+    <code>india:official_domains</code> checks genuine alerts with official links, the same alerts with look-alike links, and scams
+    that add an official link as a decoy (an official link never overrides a red flag).</p>
+    <details><summary>Show the {{ official|length }} official domains</summary>
+      <div class="table-wrap"><table>
+        {% for d, owner in official.items() %}<tr><td class="mono" style="width:40%">{{ d }}</td><td>{{ owner }}</td></tr>{% endfor %}
+      </table></div>
+      <p class="muted" style="font-size:.8rem">Brand-owned short links (amzn.to, fkrt.it, paytm.me) and cloud hosting (amazonaws.com) are
+      treated as neutral: not a good sign (anyone with an account can create them) and not a look-alike.</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">8. Known limitations</h2>
+    <ul>
+      <li><b>Legitimate transactional SMS can look like spam to the ML model.</b> Bank debit alerts, OTPs, KYC reminders and delivery
+        updates share words with promotional and scam messages ("Rs", "account", "KYC", links). Few real, public datasets contain
+        genuine Indian transactional messages, so the model often scores them high. The safe-signal rules fix common formats,
+        but alerts the ML model is ≥ 95% sure about only drop to Unsure, and formats the rules don't cover
+        (for example "please complete your periodic KYC at your branch") can still show as Spam.</li>
+      <li><b>Hinglish training data is small.</b> Only a few hundred real Hinglish messages are available (mostly from the 2011 IIIT-Delhi set and
+        Indian telecom promos). The Hindi (Devanagari) data is machine-translated from English SMS, and the quality is poor.</li>
+      <li><b>Newer scam types</b> (digital arrest, CEO fraud, emergency "papa accident" texts, fake customer care) are barely present in
+        public data from 2002–2023. They are mainly caught by the red-flag rules, not the ML model.</li>
+      <li>Email data is old (Enron ~2000–2005, SpamAssassin 2002–2005), so the model may miss modern email phishing styles.</li>
+      <li>A bag of words and character pieces doesn't understand meaning or intent. "I won the match" and "you won a prize" share words.</li>
+      <li>Probabilities come straight from logistic regression and aren't recalibrated for your own mix of messages. Treat 35–65% as uncertain.</li>
+      <li><b>The domain allowlist is hand-made.</b> A genuine site that isn't on it (a smaller bank's old domain, a brand's new campaign
+        domain, a bank's sister company) can be flagged as a look-alike if its name contains the brand. Banks are moving to
+        <code>*.bank.in</code>, which is always trusted. Punycode / non-Latin look-alike letters (Cyrillic "а") and links hidden behind
+        a brand name in the <i>path</i> (<code>evil.xyz/hdfcbank.com</code>) are not detected by the look-alike rule.</li>
+      <li>This is a learning project. Don't rely on it as your only protection against fraud.</li>
+    </ul>
+  </div>
+</main>
+<footer><span style="color:var(--ham)">●</span> SPAM//SCAN v2 · <a href="/">back to the scanner</a></footer>
+</body>
+</html>
