@@ -18,6 +18,8 @@ UNSURE_LOW, UNSURE_HIGH = 0.35, 0.65
 
 
 class Explainer:
+    """Exact per-feature explanations for a fitted TF-IDF + LogisticRegression pipeline."""
+
     def __init__(self, pipeline):
         self.pipeline = pipeline
         self.features = pipeline.named_steps["features"]
@@ -31,6 +33,7 @@ class Explainer:
 
     # ---------- global view ----------
     def global_top(self, k=20, kind=None):
+        """Top-k features by learned weight: (towards spam, towards not spam). kind = "word" or "char"."""
         idx = np.arange(len(self.coef))
         if kind:
             idx = idx[self.kind == kind]
@@ -40,11 +43,13 @@ class Explainer:
         return ([fmt(i) for i in order[::-1][:k]], [fmt(i) for i in order[:k]])
 
     def _label(self, i):
+        """Readable feature name; spaces in char n-grams are shown as the visible-space symbol."""
         g = self.gram[i]
         return g if self.kind[i] == "word" else repr(g.replace(" ", "␣"))[1:-1]
 
     # ---------- per-message ----------
     def explain(self, text, k=8):
+        """Return (probability, top_spam, top_safe, highlight_spans, intercept) for one message."""
         x = self.features.transform([text]).tocsr()
         idx, vals = x.indices, x.data
         contrib = vals * self.coef[idx]
@@ -72,6 +77,7 @@ class Explainer:
 
     @staticmethod
     def _word_hits(gram, kind, words):
+        """Indices of the normalised words a word/phrase/char n-gram feature came from."""
         if kind == "word":
             toks = gram.split()
             hits = []
@@ -180,6 +186,7 @@ def decide(prob, flags, safe=None):
 
 
 def final_verdict(prob, text):
+    """Run the red-flag and safe-signal rules and decide(). Returns (verdict, reason, title, flags, safe)."""
     flags = check_red_flags(text)
     safe = safe_signals(text, flags)
     verdict, reason, title = decide(prob, flags, safe)
@@ -187,6 +194,7 @@ def final_verdict(prob, text):
 
 
 def analyse(explainer, text, k=8):
+    """Full /api/predict response: ML explanation + rules + final verdict."""
     prob, top_spam, top_safe, spans, intercept = explainer.explain(text, k=k)
     verdict, reason, title, flags, safe = final_verdict(prob, text)
     ml_label = "spam" if prob >= 0.5 else "ham"

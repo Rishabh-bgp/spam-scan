@@ -57,6 +57,7 @@ for _f in SA_FILES:
 
 
 def download_all() -> None:
+    """Download every raw source into data/raw/ (files that already exist are skipped)."""
     RAW.mkdir(parents=True, exist_ok=True)
     for name, url in SOURCES.items():
         dest = RAW / name
@@ -73,12 +74,14 @@ _STYLE_RE = re.compile(r"<(style|script)[^>]*>.*?</\1>", re.S | re.I)
 
 
 def html_to_text(s: str) -> str:
+    """Very small HTML-to-text converter for HTML-only e-mails (drops style/script and tags)."""
     s = _STYLE_RE.sub(" ", s)
     s = re.sub(r"<br\s*/?>|</p>|</div>|</tr>", "\n", s, flags=re.I)
     return html.unescape(_TAG_RE.sub(" ", s))
 
 
 def clean(s: str) -> str:
+    """Normalise whitespace and truncate to MAX_CHARS."""
     s = s.replace("\r", "")
     s = re.sub(r"[ \t\f\v]+", " ", s)
     s = re.sub(r"\n\s*\n+", "\n\n", s)
@@ -86,6 +89,7 @@ def clean(s: str) -> str:
 
 
 def load_sms():
+    """Yield (text, label) from the UCI SMS Spam Collection."""
     with zipfile.ZipFile(RAW / "sms.zip") as zf:
         raw = zf.read("SMSSpamCollection").decode("utf-8", errors="replace")
     for line in raw.splitlines():
@@ -95,6 +99,7 @@ def load_sms():
 
 
 def load_enron():
+    """Yield (subject + body, label) from the preprocessed Enron-Spam CSV."""
     import pandas as pd
     with zipfile.ZipFile(RAW / "enron_spam_data.zip") as zf:
         df = pd.read_csv(zf.open("enron_spam_data.csv"))
@@ -107,6 +112,7 @@ def load_enron():
 
 
 def email_body(msg) -> str:
+    """Plain-text body of an e-mail (text/plain parts, else text/html converted to text)."""
     parts_plain, parts_html = [], []
     for part in msg.walk():
         if part.is_multipart():
@@ -130,6 +136,7 @@ def email_body(msg) -> str:
 
 
 def load_spamassassin():
+    """Yield (subject + body, label) from the SpamAssassin tarballs; headers are dropped."""
     for fname, label in SA_FILES.items():
         with tarfile.open(RAW / fname, "r:bz2") as tf:
             for member in tf.getmembers():
@@ -149,6 +156,7 @@ def load_spamassassin():
 
 
 def load_deysi():
+    """Yield (text, label) from the Deysi/spam-detection-dataset parquet files."""
     import pandas as pd
     for f in ("deysi_train.parquet", "deysi_test.parquet"):
         df = pd.read_parquet(RAW / f)
@@ -158,6 +166,7 @@ def load_deysi():
 
 
 def _read_csv(path):
+    """pandas.read_csv with a latin-1 fallback for files that are not valid UTF-8."""
     import pandas as pd
     try:
         return pd.read_csv(path, encoding="utf-8")
@@ -166,6 +175,7 @@ def _read_csv(path):
 
 
 def load_india_sms():
+    """Yield (text, label) from the Indian Telecom SMS Spam Collection."""
     df = _read_csv(RAW / "india_junioralive.csv")
     for text, lab in zip(df["Msg"], df["Label"]):
         if isinstance(text, str) and str(lab).strip() in ("ham", "spam"):
@@ -173,6 +183,7 @@ def load_india_sms():
 
 
 def load_india_2011():
+    """Yield (text, label) from the IIIT-Delhi 2011 crowdsourced Indian SMS set."""
     df = _read_csv(RAW / "india_precog_2011.csv")
     for lab, text in zip(df["v1"], df["v2"]):
         if isinstance(text, str) and str(lab).strip() in ("ham", "spam"):
@@ -180,6 +191,7 @@ def load_india_2011():
 
 
 def load_hindi_mt():
+    """Yield (text, label) from the Hindi (text_hi) column of the multilingual SMS set."""
     df = _read_csv(RAW / "multilingual_sms.csv")
     for lab, text in zip(df["labels"], df["text_hi"]):
         if isinstance(text, str) and str(lab).strip() in ("ham", "spam"):
@@ -187,6 +199,7 @@ def load_hindi_mt():
 
 
 def main() -> None:
+    """Download, load, clean and de-duplicate all sources, then write data/combined.csv.gz."""
     import email.header  # noqa: F401  (used in load_spamassassin)
     download_all()
     seen = set()

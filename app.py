@@ -72,6 +72,7 @@ app = Flask(__name__)
 
 @app.context_processor
 def fx_context():
+    """Inject the small `fx` dict (feature/rule/dataset counts, accuracy) into every template."""
     # numbers shown in the boot sequence / status line
     return {"fx": {"features": metrics.get("n_features", 0), "rules": len(RULES), "safe": len(SAFE_RULES),
                    "datasets": len(metrics.get("datasets", {})), "accuracy": metrics.get("accuracy", 0)}}
@@ -81,12 +82,14 @@ app.json.ensure_ascii = False
 
 @app.get("/")
 def index():
+    """Main scanner page with the Threat Matrix gallery."""
     return render_template("index.html", categories=EXAMPLE_CATEGORIES, metrics=metrics,
                            max_chars=MAX_CHARS, low=UNSURE_LOW, high=UNSURE_HIGH)
 
 
 @app.get("/how-it-works")
 def how_it_works():
+    """Transparency page: datasets, metrics, probes, top features, rules, safe signals, allowlist."""
     rules = [{"id": r[0], "title": r[1], "explanation": r[2], "severity": r[3]} for r in RULES]
     safe_rules = [{"id": r[0], "title": r[1], "explanation": r[2]} for r in SAFE_RULES]
     return render_template("how.html", m=metrics, rules=rules, safe_rules=safe_rules,
@@ -95,6 +98,7 @@ def how_it_works():
 
 @app.post("/api/predict")
 def api_predict():
+    """POST {"text": "..."} -> full analysis JSON (see docs/API.md). 400 if empty, 413 if > MAX_CHARS."""
     data = request.get_json(silent=True) or {}
     text = data.get("text")
     if not isinstance(text, str) or not text.strip():
@@ -106,11 +110,13 @@ def api_predict():
 
 @app.get("/api/health")
 def health():
+    """Liveness check: status, model description and held-out accuracy."""
     return jsonify(status="ok", model=metrics.get("model"), accuracy=metrics.get("accuracy"))
 
 
 @app.get("/api/model-info")
 def model_info():
+    """metrics.json without the per-probe miss lists (those are only shown on /how-it-works)."""
     return jsonify({k: v for k, v in metrics.items() if k != "probes"} | {
         "probes": {g: {k: v for k, v in r.items() if k != "misses"} for g, r in metrics.get("probes", {}).items()}})
 

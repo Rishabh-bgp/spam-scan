@@ -134,10 +134,12 @@ def official_owner(host):
 
 
 def is_official(host):
+    """True if the host is an allowlisted domain or a real sub-domain of one."""
     return official_owner(host) is not None
 
 
 def is_shortener(host):
+    """True if the host is a known URL shortener (bit.ly, tinyurl.com, ...)."""
     return host in SHORTENERS
 
 
@@ -299,6 +301,7 @@ def analyse_links(text):
 
 
 def brands_in_text(text):
+    """Brand names mentioned in the message text (word boundaries), e.g. ["SBI", "Paytm"]."""
     return [n for n, rx in _TEXT_BRAND_RE if rx.search(text or "")]
 
 

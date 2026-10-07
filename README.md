@@ -1,194 +1,268 @@
-# Spam Checker: a transparent SMS/email spam and scam classifier
+<div align="center">
 
-Paste an SMS or email (English, Hinglish or Hindi) and the app shows you:
+# SPAM//SCAN
 
-- **Verdict:** Spam, Unsure, or Not spam, plus a sentence on how it was decided.
-- **ML spam probability** from a TF-IDF + Logistic Regression model. Anything between 35% and 65% counts as "unsure".
-- **Red flags:** named, hand-written rules for common scams (UPI PIN to receive money, KYC/SIM block (high with a link/number, medium without), parcel fee,
-  "digital arrest", fake customer care, CEO fraud, job registration fee, emergency money requests, prize/lottery claims,
-  shortened links, kidnap/blackmail extortion, look-alike bank/brand web addresses, and more). Each one shows what it matched.
-- **Official-domain check:** every link's real host is checked against an allowlist of official Indian bank, payment-app,
-  telecom, courier, shop and government domains (plus any `*.gov.in` / `*.bank.in`). An official link is a good sign; a
-  look-alike (`sbi-kyc-update.com`, `hdfcbank.com.verify.xyz`, `1cici.co`) is a high red flag.
-- **Why:** each word is highlighted red (pushes toward spam) or green (pushes toward not spam), with the top
-  contributing words, phrases and character n-grams and their exact weights.
-- **How this model works** at `/how-it-works`: the datasets, per-dataset test metrics, probe results, the top 20 global
-  features, the rules, and known limitations.
+**An explainable spam and scam checker for Indian SMS and e-mail (English, Hinglish and Hindi).**
+
+Paste a message. You get a verdict (Spam, Unsure or Not spam), the reason for it, the scam rules that fired, and the words that pushed the score up or down.
+
+[![Python](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/flask-3.x-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9.1-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Results](#results) · [Limitations](#limitations) · [Documentation](#documentation)
+
+<img src="docs/images/verdict-spam-skull.png" alt="SPAM//SCAN flagging a fake SBI KYC message as Spam, with three red flags and a neon skull" width="820">
+
+</div>
+
+> [!IMPORTANT]
+> SPAM//SCAN is an educational project, not a security product. A "Not spam" verdict is not a guarantee.
+> Never share an OTP, UPI PIN or card details, and never pay through a link in a message, whatever the verdict says.
+> If you have been defrauded in India, call **1930** or report it at [cybercrime.gov.in](https://cybercrime.gov.in).
+
+---
+
+## Features
+
+- **Three verdicts, not two.** The result is *Spam*, *Unsure* or *Not spam*, with a sentence that explains how it was decided. An ML score between 35% and 65% counts as uncertain.
+- **Machine learning you can inspect.** TF-IDF word 1–2 grams plus character 3–5 grams feed a logistic regression with **470,995 features**. Every word is highlighted by how much it pushed the score, and the exact contribution of each top feature is listed.
+- **15 named red-flag rules for Indian scams:** UPI PIN to *receive* money, KYC/SIM block threats, parcel fees, "digital arrest", fake customer care, CEO fraud/BEC, job registration fees, emergency money requests, electricity disconnection, kidnap/sextortion extortion, prize claims, OTP requests, look-alike domains, brand/link mismatches and suspicious links. Each rule shows the exact text it matched.
+- **8 safe signals for genuine alerts.** These recognise the format of bank debit/credit alerts, UPI confirmations, OTP notices, courier updates, official e-challans, KYC-complete notices and expense approvals, plus links that go only to an official domain. They are switched off by any red flag, payment request, PIN/OTP request, short link or non-official link.
+- **Official-domain check.** There is a hand-checked allowlist of **96 official domains** (banks, UPI apps, telecoms, couriers, shops and government), and any `*.gov.in`, `*.nic.in`, `*.bank.in` or `.sbi` address counts as official. Look-alikes such as `hdfcbnk.com`, `1cici.co`, `hdfcbank.com.evil.xyz` and `onlinesbi.sbi@evil.xyz` are caught.
+- **Works with messy text.** It handles misspellings (`u won 1 milion dolars`), Hinglish (`account band ho jayega`) and Devanagari Hindi.
+- **Cyberpunk "hacker" UI.** The interface has a boot sequence, Matrix rain, a live scan log and a **Threat Matrix** of 18 example categories (83 example messages). There is also a random-payload button (or press <kbd>R</kbd>), optional Web Audio sound effects, and a neon skull, angel or ghost for each verdict. It respects *reduced motion*.
+- **Transparency page** at `/how-it-works`, generated from `metrics.json`. It lists the datasets, per-dataset test scores, probe results, the strongest features, every rule and the full domain allowlist.
+- **JSON API** (`POST /api/predict`) that returns everything the UI shows.
+- **Runs locally and offline.** No external CDNs, fonts or trackers are used, and the app doesn't store your messages.
+
+## Screenshots
+
+| Threat Matrix with the Gray zone drawer open | Not spam: genuine alert with an official link |
+|---|---|
+| <img src="docs/images/threat-matrix-gray.png" alt="Threat Matrix grid of 18 category tiles, with the Gray zone drawer open" width="420"> | <img src="docs/images/verdict-notspam-angel.png" alt="A genuine HDFC debit alert marked Not spam, with the neon angel" width="420"> |
+| **Unsure: borderline message (ghost)** | **How it works page** |
+| <img src="docs/images/verdict-unsure-ghost.png" alt="A Netflix payment-failed message marked Unsure, with the ghost" width="420"> | <img src="docs/images/how-it-works.png" alt="The how-it-works transparency page" width="420"> |
+
+<details>
+<summary>Mobile screenshots</summary>
+
+| Spam | Not spam | Unsure | Gray zone |
+|---|---|---|---|
+| <img src="docs/images/mobile-spam-skull.png" alt="Mobile: Spam verdict" width="190"> | <img src="docs/images/mobile-notspam-angel.png" alt="Mobile: Not spam verdict" width="190"> | <img src="docs/images/mobile-unsure-ghost.png" alt="Mobile: Unsure verdict" width="190"> | <img src="docs/images/mobile-gray-zone.png" alt="Mobile: Threat Matrix with Gray zone" width="190"> |
+
+</details>
 
 ## Quick start
 
-| OS | Command |
-|----|---------|
+You need **Python 3.9 or newer**. It was tested with Python 3.13 and scikit-learn 1.9.1. The trained model (`model.joblib`, about 8 MB) is in the repository, so you **don't** need to train anything.
+
+```bash
+git clone https://github.com/Rishabh-bgp/spam-scan.git
+cd spam-scan
+```
+
+| OS | One-step start |
+|----|----------------|
 | macOS / Linux | `./run.sh` |
-| Windows | `run.bat` |
+| Windows | `run.bat` (double-click it, or run it in Command Prompt) |
 
-The script creates `.venv`, installs the requirements, trains the model if `model.joblib` is missing, and starts
-the server. Then open **http://127.0.0.1:5000**.
+Then open **http://127.0.0.1:5000**. The script creates `.venv`, installs `requirements.txt` and starts the server. It only trains a model if `model.joblib` is missing.
 
-## Manual setup (Python 3.9+; tested with 3.13 and scikit-learn 1.9.1)
+<details>
+<summary>Manual setup</summary>
 
 **macOS / Linux**
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python train.py      # optional: model.joblib is included. Takes about 2 minutes and 3 GB of RAM.
-python app.py
+python app.py                       # http://127.0.0.1:5000
+PORT=8000 python app.py             # another port
 ```
 
-**Windows**
-```bat
+**Windows (PowerShell)**
+
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1          # or: .venv\Scripts\activate.bat in cmd
 pip install -r requirements.txt
-python train.py
 python app.py
+$env:PORT=8000; python app.py       # another port
 ```
-If PowerShell blocks `activate`, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or just call
-`.venv\Scripts\python.exe app.py`. To use another port, set `PORT` (for example `PORT=8000 python app.py`).
 
-`model.joblib` was saved with scikit-learn 1.9.1. If a different version prints warnings or won't load it,
-run `python train.py` again.
+If PowerShell blocks the activate script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or skip activation and call `.venv\Scripts\python.exe app.py`.
 
-### Using the web UI
-- **Threat matrix**: a grid of 17 scam categories (UPI, KYC, PKG … 419, plus a green SAFE tile for genuine messages)
-  and a yellow `???` GRAY tile of borderline messages that land in Unsure (its tile reads "unsure x/y").
-  Each tile shows a threat level and "caught x/y", both computed from `examples.json` when the server starts.
-  The level comes from how many examples the **ML model alone** catches (LOW = all, MED ≥ 75%, HIGH ≥ 50%, CRIT < 50%).
-  "Caught" counts the final verdict, after the red-flag rules. Click a tile to open its drawer, then click a line to
-  scan that message. `[ RANDOM PAYLOAD ]`, or pressing **R** when you're not typing, scans a random example.
-  `/?open=kyc` opens a drawer and `/?q=<text>` scans a message directly.
-- **Sound effects**: short tones made with the Web Audio API (no audio files). They play only after you click or
-  press a key. Turn them on or off with `[ SFX: ON/OFF ]` in the header; the setting is saved in your browser.
-- **Verdict characters** (original inline SVGs, one per verdict): a neon skull with "!! THREAT DETECTED !!" for
-  SPAM, a floating angel with a pulsing halo and "// ALL CLEAR //" for NOT SPAM (including standard alerts), and a
-  glitchy ghost with a question mark and "?? ANALYSIS INCONCLUSIVE ??" for UNSURE. If your system asks for reduced
-  motion, the characters stay still and the boot screen and matrix rain are turned off.
+</details>
 
-### Rebuilding the dataset (optional)
-`data/combined.csv.gz` (about 16 MB, 60,696 messages) is included. To rebuild it from the original sources:
+Try it from the command line:
+
 ```bash
-pip install -r requirements-data.txt   # adds pandas + pyarrow
-python prepare_data.py                 # downloads ~40 MB into data/raw/ and rebuilds combined.csv.gz
-python train.py
+curl -s -X POST http://127.0.0.1:5000/api/predict \
+     -H "Content-Type: application/json" \
+     -d '{"text": "Your SBI account will be blocked today, update KYC"}'
+# -> "verdict": "spam", ML 63.7% plus the medium kyc_block rule (see docs/API.md)
 ```
 
-## Data (real, public datasets only)
+Problems? See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md). Port 5000 is taken by AirPlay Receiver on many Macs.
 
-| Key | Dataset | Kind | Messages (spam / ham) |
-|-----|---------|------|-----------------------|
-| `sms` | [UCI SMS Spam Collection](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) | SMS, English | 5,129 (629 / 4,500) |
-| `enron` | [Enron-Spam, preprocessed](https://github.com/MWiechmann/enron_spam_data) | Email | 30,089 (14,537 / 15,552) |
-| `spamassassin` | [SpamAssassin public corpus](https://spamassassin.apache.org/old/publiccorpus/) | Email (headers stripped) | 5,785 (1,677 / 4,108) |
-| `deysi` | [Deysi/spam-detection-dataset](https://huggingface.co/datasets/Deysi/spam-detection-dataset) | Short texts/posts | 10,653 (5,498 / 5,155) |
-| `india_sms` | [Indian Telecom SMS Spam Collection](https://github.com/junioralive/india-spam-sms-classification) (MIT) | Indian SMS | 2,001 (728 / 1,273) |
-| `india_2011` | IIIT-Delhi crowdsourced Indian SMS (Yadav, Kumaraguru et al. 2011), [GitHub mirror](https://github.com/princebari/-SMS-Spam-Classification-on-Indian-Dataset-A-Crowdsourced-Collection-of-Hindi-and-English-Messages) | Indian SMS, English + Hinglish | 1,932 (965 / 967) |
-| `hindi_mt` | [SMS Spam Multilingual Collection](https://huggingface.co/datasets/dbarbedillo/SMS_Spam_Multilingual_Collection_Dataset), Hindi column (GPL) | UCI SMS machine-translated to Devanagari | 5,107 (630 / 4,477) |
+## Project structure
 
-The data is de-duplicated across all sources. Email headers are removed (only the subject and body are kept), and long emails are cut to 4,000 characters.
-Synthetic and template-generated datasets I looked at (for example `CloveAI/india-spam-sms` and `alusci/sms-otp-spam-dataset`)
-were deliberately **not** used.
-
-## Model
-- Text normalisation (`textnorm.py`): URLs, emails, phone numbers, currency and numbers become placeholder tokens, and
-  pre-tokenised Enron text is re-joined.
-- Features: word 1–2-gram TF-IDF (sublinear tf), plus **character 3–5-gram TF-IDF (`char_wb`)** for misspellings,
-  obfuscation (`fr33`) and Hinglish spelling variants. There are about 471k features.
-- Classifier: Logistic Regression (C=10). Training uses per-(dataset, class) weights of 1/√n so the large Enron corpus doesn't drown out SMS.
-  A calibrated LinearSVC scored about the same. Logistic Regression won because its explanations are exact.
-- Each dataset is split 80/20 (stratified). The shipped model is the one trained on the 80% split, so the reported metrics describe it exactly.
-
-Results are in `metrics.json` and on the `/how-it-works` page. Run `python probes.py` to re-score the hand-written probes.
-
-## API
-```bash
-curl -X POST http://127.0.0.1:5000/api/predict -H "Content-Type: application/json" \
-     -d '{"text": "You have wo 1 million dollars"}'
+```text
+spam-scan/
+├── app.py               # Flask app: UI, /how-it-works, /api/predict, /api/health, /api/model-info
+├── explain.py           # exact per-feature explanations + the final verdict logic (decide)
+├── redflags.py          # 15 red-flag rules and 8 safe signals (hand-written, readable regexes)
+├── domains.py           # official-domain allowlist (96), link parsing, look-alike detection
+├── textnorm.py          # text normalisation shared by training and serving
+├── train.py             # trains the model, evaluates per dataset + probes, writes model.joblib + metrics.json
+├── prepare_data.py      # downloads the 7 public datasets and builds data/combined.csv.gz
+├── probes.py            # 167 hand-written robustness probes + 43 domain-matcher cases
+├── examples.json        # Threat Matrix gallery: 18 categories, 83 messages (fake numbers/links)
+├── metrics.json         # metrics written by train.py (shown on /how-it-works)
+├── model.joblib         # trained scikit-learn pipeline (scikit-learn 1.9.1)
+├── templates/           # index.html, how.html, base_style.html, fx.html (no external assets)
+├── docs/                # detailed documentation + screenshots
+├── requirements.txt     # runtime: scikit-learn, flask, joblib, numpy
+├── requirements-data.txt  # + pandas, pyarrow (only to rebuild the dataset)
+├── run.sh / run.bat     # one-step setup and start
+└── data/                # (git-ignored) combined.csv.gz and raw downloads, created by prepare_data.py
 ```
-These fields are unchanged from v1:
-- `label`: `spam`/`ham`. It is now the final verdict, with Unsure resolved by the 50% ML threshold.
-- `spam_probability`: the ML probability.
-- `confidence`: the ML model's confidence in its own label.
 
-New fields:
-- `verdict`: `spam`, `unsure` or `ham`.
-- `verdict_reason`: how the verdict was decided.
-- `ml_label`: the ML model's label on its own.
-- `red_flags`: a list with `id`, `title`, `explanation`, `severity` and `matched`.
-- `top_spam_features` and `top_safe_features`: each has `feature`, `type`, `contribution` and `words`.
-- `highlights`: character spans of the input, each with a `score`.
-- `bias`: the model's intercept.
-- `verdict_display`: the title shown in the UI, for example "Not spam (standard alert)".
-- `safe_signals`: the safe-signal rules that matched.
-- `safe_signal_applied`: whether a safe signal changed the verdict.
-- `safe_signal_blocked_by`: plain-language reasons a safe signal wasn't applied.
+## How it works
 
-Other endpoints: `GET /api/health` and `GET /api/model-info`.
+There are two independent parts. A **machine-learning model** gives a spam probability, and **hand-written rules** look for known scam patterns and genuine-alert formats. A small, fixed decision procedure combines them, so the reason for a verdict can always be stated in one sentence.
 
-## How the verdict is decided
-0. **Safe signal ("looks like a standard transactional alert")**: if the message matches a genuine-alert format
-   (bank debit/credit alert with a masked a/c, UPI confirmation with a ref no., OTP with "do not share" and no link
-   other than the bank's own domain,
-   courier status update, e-challan linking only to parivahan.gov.in, KYC-verified notice, expense/PO approval) **and**
-   no red flag fired, there is no link to a non-official domain, no shortened link, no request for a PIN/OTP/password/card
-   details, no payment/fee request, and no "call to avoid blocking", then the verdict is **Not spam (standard alert)**,
-   or **Unsure** if ML ≥ 95%. The UI and API (`safe_signals`, `safe_signal_applied`, `safe_signal_blocked_by`)
-   always say why it was or wasn't applied. **Scammers may imitate the format**, so never share an OTP/PIN or pay via a link.
-   - **Official link** (`official_link`): every link goes to an allowlisted official domain. On its own it works like the
-     formats above (Not spam, or Unsure if ML ≥ 95%), but not if the message also gives a mobile number. Together with an
-     alert format it gives **Not spam (standard alert + official link)** even when ML ≥ 95%. It never overrides a red flag:
-     an OTP request, digital-arrest threat or UPI-PIN trick with an official link as a decoy is still Spam, and a payment
-     request still blocks it.
-1. ML ≥ 65% → Spam.
-2. Otherwise, any **high** red flag → Spam. The rules override the ML score.
-3. Otherwise, a **medium** red flag and ML ≥ 35% → Spam.
-4. Otherwise, ML at 35–65% or a medium flag → Unsure.
-5. Otherwise → Not spam.
+```mermaid
+flowchart LR
+    A["Message text"] --> N["Normalise<br/>URL, email, phone, money and number placeholders"]
+    N --> W["TF-IDF word 1-2 grams"]
+    N --> C["TF-IDF char_wb 3-5 grams"]
+    W --> LR["Logistic Regression<br/>P(spam)"]
+    C --> LR
+    A --> RF["Red-flag rules<br/>12 high, 2 medium,<br/>kyc_block high or medium"]
+    A --> SS["Safe signals<br/>8 genuine-alert formats"]
+    A --> DM["domains.py<br/>allowlist and look-alikes"]
+    DM --> RF
+    DM --> SS
+    RF --> SS
+    LR --> V{"Verdict logic"}
+    RF --> V
+    SS --> V
+    V --> OUT["Spam / Unsure / Not spam<br/>+ reason, highlights, top features"]
+```
 
-## Official domains and look-alikes (`domains.py`)
-- **Allowlist:** exact domain or a real sub-domain only. `netbanking.hdfcbank.com` is HDFC Bank; `hdfcbank.com.evil.xyz`
-  (owned by `evil.xyz`), `hdfcbank-kyc.com` and `http://onlinesbi.sbi@evil.xyz` (everything before `@` is decoration) are not.
-  Restricted zones `*.gov.in`, `*.nic.in`, `*.bank.in` (RBI's bank-only domain) and SBI's `.sbi` TLD are always official.
-  The full list with owners is on `/how-it-works`.
-- **`lookalike_domain` (high):** a non-official host that contains a brand name (sbi, hdfc, icici, axis, kotak, pnb, paytm,
-  phonepe, amazon, flipkart, jio, airtel, india post, delhivery, uidai, incometax, parivahan, paypal...) or a typo of one
-  (digit swaps 0→o 1→i/l 3→e 5→s, rn→m; one-letter typos for long names like hdfcbank/flipkart). Short names
-  (sbi, pnb, rbi, jio) only count at the start or end of a word, so "lesbian"/"turbine" don't match.
-- **`brand_link_mismatch` (medium):** the message names a brand and asks you to act (verify, claim, pay, track, log in...)
-  within ~200 characters of a link to an unrelated domain or a URL shortener.
-- Brand short links (`amzn.to`, `fkrt.it`, `paytm.me`) and `amazonaws.com` are neutral: neither good nor look-alike.
-- If the only link in a KYC/account-block message is official (and there's no phone number), the KYC rule is medium, not high.
-- Tests: `python probes.py` runs the message probes (group `india:official_domains`) and 43 domain-matcher unit cases.
+**Verdict logic** (`explain.decide`, thresholds `UNSURE_LOW = 0.35`, `UNSURE_HIGH = 0.65`):
 
-## Known limitations
-- **False positives on real transactional SMS.** The ML model often scores bank debit alerts, OTPs, KYC reminders and
-  courier updates high, because there's almost no public data of genuine Indian transactional messages. The safe-signal
-  rules fix the common formats, but alerts the ML model is ≥ 95% sure about only drop to Unsure, and uncovered
-  formats (for example a branch-KYC reminder) can still show as Spam.
-- **Little real Hinglish data.** There are a few hundred real messages. The Devanagari data is machine-translated, and its quality is poor.
-- Newer scam types (digital arrest, CEO fraud, emergency-money texts) are rare in public data, so the rules
-  catch them, not the ML model. The rules were written while looking at the probe messages, so probe scores that include rules are optimistic.
-- The email corpora are from 2000–2005.
-- **The domain allowlist is hand-made.** A genuine domain that isn't listed but contains a brand name (a bank's sister
-  company, a new campaign site) is flagged as a look-alike. Punycode / non-Latin look-alike letters and brand names hidden in
-  the link *path* (`evil.xyz/hdfcbank.com`) aren't caught by the look-alike rule. Genuine messages with an official link but
-  no known alert format (e.g. a Jio recharge confirmation the ML scores 98%) still only reach Unsure.
+1. **No red flag fired and a safe signal applies:**
+   - alert format **plus** an official link gives **Not spam**, even if the ML score is very high;
+   - otherwise, an ML score **≥ 95%** gives **Unsure**, and anything lower gives **Not spam**.
+2. ML **≥ 65%** → **Spam**.
+3. Any **high** red flag → **Spam**. Rules override the ML score.
+4. A **medium** red flag and ML **≥ 35%** → **Spam**.
+5. ML between **35% and 65%** → **Unsure**.
+6. A **medium** red flag with ML < 35% → **Unsure**.
+7. Otherwise → **Not spam**.
 
-## Files
-| File | Purpose |
-|------|---------|
-| `app.py` | Flask server: UI, `/how-it-works`, `/api/predict`, `/api/health`, `/api/model-info` |
-| `train.py` | Trains, evaluates per dataset and on the probes, saves `model.joblib` and `metrics.json` |
-| `prepare_data.py` | Downloads and merges the public datasets into `data/combined.csv.gz` |
-| `textnorm.py` | Text normalisation (shared by training and serving) |
-| `explain.py` | Per-prediction explanations and verdict logic |
-| `redflags.py` | Transparent red-flag rules and safe-signal (standard alert) rules |
-| `domains.py` | Official-domain allowlist, link/host extraction and look-alike domain detection |
-| `probes.py` | Hand-written robustness probes (tests only, never training data) |
-| `examples.json` | Example gallery shown in the UI (18 categories, 81 messages, fake placeholder numbers and links) |
-| `templates/` | `index.html`, `how.html`, shared CSS (no external CDNs) |
-| `run.sh`, `run.bat` | One-step setup and run |
+The full decision diagram is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The rules are explained one by one in [docs/RULES.md](docs/RULES.md).
 
-Dataset credits: Almeida & Gómez Hidalgo (UCI SMS, CC BY 4.0); Metsis, Androutsopoulos & Paliouras (Enron-Spam);
-Apache SpamAssassin; Deysi (Hugging Face); junioralive (MIT); Yadav, Kumaraguru, Goyal, Gupta & Naik (IIIT-Delhi, 2011);
-rajnathpatel / dbarbedillo (multilingual translations, GPL).
+## Results
+
+All numbers come from `metrics.json`, written by `train.py`. Each of the 7 datasets is split 80/20 (stratified, seed 42). The model is trained on the 80% (48,554 messages) and tested on the held-out 20% (12,142 messages) at a 50% threshold. I re-ran the held-out evaluation on the shipped `model.joblib`, and it reproduces these figures exactly.
+
+| Test set | n | Accuracy | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|---:|
+| **All** | 12,142 | **0.981** | 0.985 | 0.967 | **0.976** |
+| SMS (UCI + Indian + Hindi) | 2,836 | 0.974 | 0.943 | 0.929 | 0.936 |
+| E-mail (Enron + SpamAssassin) | 7,175 | 0.979 | 0.989 | 0.964 | 0.976 |
+| `india_sms` | 401 | 0.985 | 0.967 | 0.993 | 0.980 |
+| `india_2011` (English + Hinglish) | 387 | 0.969 | 0.995 | 0.943 | 0.968 |
+| `hindi_mt` (machine-translated Hindi) | 1,022 | 0.966 | 0.882 | 0.833 | 0.857 |
+
+**Hand-written robustness probes** (`probes.py`, never used for training): 167 messages in 13 groups.
+
+| | ML model alone (P ≥ 0.5) | ML + rules (final verdict) |
+|---|---:|---:|
+| Original 12 groups (138 probes) | 108 / 138 | **131 / 138** (5 of the 7 misses are *Unsure*) |
+| Official-domain group (29 probes) | 19 / 29 | **28 / 29** (the miss is *Unsure*) |
+| **All 167 probes** | 127 / 167 (76%) | **159 / 167 (95%)** (6 of the 8 misses are *Unsure*) |
+| Domain-matcher unit cases | | **43 / 43** |
+
+> [!NOTE]
+> The rules were written while looking at these probes, so the "ML + rules" column is **optimistic**. The "ML alone" column is the fairer test of the model.
+> Per-group scores and the full list of misses are in [docs/TESTING.md](docs/TESTING.md).
+
+## Limitations
+
+These are known weaknesses. Please read them before trusting a verdict.
+
+- **Genuine alerts without a link often come back *Unsure*.** There's very little public data of genuine Indian transactional SMS, so the ML model scores many real bank and UPI alerts at 95% or more. The safe signals can then only lower them to Unsure, not Not spam. Example: the HDFC debit alert without a link scores 100% and comes back Unsure.
+- **Some formats aren't covered and become false positives.** "Please complete your periodic KYC update by visiting your nearest branch" scores 99.5% with the ML model and is marked **Spam**.
+- **Typo-heavy promotional spam gets missed.** `Hot singels in ur area want to met u tonite, reply YES` is marked *Not spam* (22%). `Claime ur reward now!! limted time ofer` only reaches *Unsure*.
+- **The ML model alone is much weaker than the full system** on modern Indian scams. It catches 0 of 4 emergency-money gallery examples and 1 of 4 CEO-fraud examples on its own, and the rules do the work there.
+- **The probe scores are optimistic**, because the rules and the probes were written together.
+- **The domain allowlist is hand-made.** A genuine domain that's missing from it but contains a brand name (a bank's sister company, a new campaign site) is flagged as a look-alike.
+- **Non-Latin look-alike letters aren't caught.** This covers punycode/IDN homoglyphs such as a Cyrillic "а" in `pаypal.com`. Brand names in the link *path* (`evil.xyz/hdfcbank.com`) and bare IP-address links aren't caught by the look-alike rule either.
+- **Old and thin data.** The e-mail corpora are from about 2000–2005. There are only a few hundred real Hinglish messages, and the Devanagari Hindi data is machine-translated, which shows in its lower F1 (0.857).
+- **Bag of n-grams.** The model doesn't understand intent. "I won the match" and "you won a prize" share words.
+
+## Roadmap
+
+These are ideas, not promises. Contributions are welcome.
+
+- [ ] Collect consented, anonymised **genuine Indian transactional SMS** to cut false positives at the source.
+- [ ] Detect **IDN/punycode homoglyphs** and IP-address links in `domains.py`.
+- [ ] Calibrate probabilities (for example with `CalibratedClassifierCV`) and re-tune the Unsure band.
+- [ ] Move the probes into a `pytest` suite with CI on GitHub Actions.
+- [ ] Add a separate, *untouched* test set for the rules so their real-world precision can be measured.
+- [ ] Ship a Dockerfile and a production WSGI setup (for example `waitress` or `gunicorn`).
+- [ ] Add more languages and scripts (Bengali, Tamil, Marathi...) and more real Hinglish data.
+
+## Documentation
+
+| Page | What's inside |
+|---|---|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, request flow, the exact verdict logic, how explanations and highlights are computed |
+| [MODEL.md](docs/MODEL.md) | Datasets, normalisation, features, classifier, training, evaluation and how to retrain |
+| [RULES.md](docs/RULES.md) | Every red-flag rule and safe signal, the domain allowlist and look-alike matching, and how to add your own |
+| [API.md](docs/API.md) | Every route, with request/response schemas and real captured responses |
+| [TESTING.md](docs/TESTING.md) | Probe groups, current scores, misses and how to add probes |
+| [UI.md](docs/UI.md) | Threat Matrix, Random Payload, SFX, the skull/angel/ghost, the Gray zone, deep links and accessibility |
+| [FAQ.md](docs/FAQ.md) | Common questions |
+| [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Port in use, scikit-learn version mismatch, Mac background process, and more |
+| [CONTRIBUTING.md](CONTRIBUTING.md) · [CHANGELOG.md](CHANGELOG.md) · [SECURITY.md](SECURITY.md) | How to help, version history, responsible use |
+
+## Contributing
+
+Bug reports, **false positives and false negatives** (with personal details removed), new rules, new official domains and new probes are all welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and the issue templates.
+
+## License
+
+The code is released under the [MIT License](LICENSE) © 2026 Er. Rishabh Aryan.
+
+The training datasets are **not** part of this repository and keep their own licences (see below). `model.joblib` is a model trained on them. If you plan to redistribute it or use it commercially, check the dataset licences first, because two of them are GPL.
+
+## Author
+
+**Er. Rishabh Aryan**, M.Tech student in Artificial Intelligence and Data Science, IIIT Bhagalpur.
+GitHub: [@Rishabh-bgp](https://github.com/Rishabh-bgp)
+
+## Acknowledgements
+
+The model is trained only on real, public datasets. Thanks to their authors:
+
+| Key | Dataset | Messages after de-dup (spam / ham) | Licence |
+|---|---|---|---|
+| `sms` | [UCI SMS Spam Collection](https://archive.ics.uci.edu/dataset/228/sms+spam+collection), Almeida & Gómez Hidalgo (2011) | 5,129 (629 / 4,500) | CC BY 4.0 |
+| `enron` | [Enron-Spam, preprocessed CSV by M. Wiechmann](https://github.com/MWiechmann/enron_spam_data), from the corpus by Metsis, Androutsopoulos & Paliouras (2006) | 30,089 (14,537 / 15,552) | GPL-3.0 (CSV repository). Original corpus: see source |
+| `spamassassin` | [Apache SpamAssassin public corpus](https://spamassassin.apache.org/old/publiccorpus/) | 5,785 (1,677 / 4,108) | No explicit licence. Its readme says copyright stays with the original senders; see source |
+| `deysi` | [Deysi/spam-detection-dataset](https://huggingface.co/datasets/Deysi/spam-detection-dataset) (Hugging Face) | 10,653 (5,498 / 5,155) | Apache-2.0 |
+| `india_sms` | [Indian Telecom SMS Spam Collection](https://github.com/junioralive/india-spam-sms-classification) by junioralive | 2,001 (728 / 1,273) | MIT |
+| `india_2011` | IIIT-Delhi crowdsourced Indian SMS (Yadav, Kumaraguru, Goyal, Gupta & Naik, 2011), via a [GitHub mirror](https://github.com/princebari/-SMS-Spam-Classification-on-Indian-Dataset-A-Crowdsourced-Collection-of-Hindi-and-English-Messages) | 1,932 (965 / 967) | Not stated in the mirror; see source |
+| `hindi_mt` | [SMS Spam Multilingual Collection](https://huggingface.co/datasets/dbarbedillo/SMS_Spam_Multilingual_Collection_Dataset) (Hindi column, UCI SMS machine-translated) | 5,107 (630 / 4,477) | GPL (as tagged on Hugging Face) |
+
+Licences were checked on the source pages in October 2026. Please confirm them at the source before reusing any dataset.
+
+Also built with [scikit-learn](https://scikit-learn.org/), [Flask](https://flask.palletsprojects.com/), [NumPy](https://numpy.org/) and [joblib](https://joblib.readthedocs.io/). The skull, angel and ghost are original inline SVGs.

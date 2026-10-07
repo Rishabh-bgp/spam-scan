@@ -252,6 +252,7 @@ DOMAIN_CASES = [
 
 
 def run_domain_cases(verbose=True):
+    """Check domains.analyse_links against DOMAIN_CASES. Returns (passed, total, misses)."""
     from domains import analyse_links
     bad = []
     for link, exp in DOMAIN_CASES:

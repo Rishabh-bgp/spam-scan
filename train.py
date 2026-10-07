@@ -54,6 +54,7 @@ DATASET_INFO = {
 
 
 def build_pipeline():
+    """TF-IDF word 1-2 grams + char_wb 3-5 grams (FeatureUnion) -> LogisticRegression(C=10, liblinear)."""
     features = FeatureUnion([
         ("word", TfidfVectorizer(preprocessor=normalize, ngram_range=(1, 2), sublinear_tf=True,
                                  min_df=2, max_features=200_000, token_pattern=r"(?u)\b\w+\b",
@@ -66,6 +67,7 @@ def build_pipeline():
 
 
 def load():
+    """Return (texts, labels, sources) from data/combined.csv.gz, building it first if missing."""
     if not DATA.exists():
         print("data/combined.csv.gz not found -> running prepare_data.py (needs pandas + pyarrow)")
         import prepare_data
@@ -78,6 +80,7 @@ def load():
 
 
 def sample_weights(y, src):
+    """Weight 1/sqrt(n) per (dataset, class) cell, rescaled so the weights average 1."""
     w = np.ones(len(y))
     for s in np.unique(src):
         for c in (0, 1):
@@ -88,6 +91,7 @@ def sample_weights(y, src):
 
 
 def scores(y, pred):
+    """Accuracy / precision / recall / F1 (rounded to 4 d.p.) plus the confusion-matrix counts."""
     tn, fp, fn, tp = confusion_matrix(y, pred, labels=[0, 1]).ravel()
     return {"accuracy": round(accuracy_score(y, pred), 4),
             "precision": round(precision_score(y, pred, zero_division=0), 4),
@@ -125,6 +129,7 @@ def probe_report(model, verbose=True):
 
 
 def main():
+    """Split per dataset (80/20, stratified, seed 42), fit, evaluate, run probes, save model + metrics."""
     t0 = time.time()
     texts, y, src = load()
     print(f"Loaded {len(texts)} messages from {len(set(src))} datasets")

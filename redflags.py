@@ -122,6 +122,7 @@ _PRIZE_WHAT = (r"million|milion|billion|lakh|crore|cash|prize|prise|inaam|inam|r
 
 
 def _search(pattern, text):
+    """First case-insensitive match of pattern in text (stripped), or None."""
     m = re.search(pattern, text, re.I | re.S)
     return m.group(0).strip() if m else None
 
@@ -331,10 +332,12 @@ _NEG_BEFORE = re.compile(r"(?:not|never|n't|mat|na|nahi)\W+(?:\w+\W+){0,2}$", re
 
 
 def _hosts(text):
+    """Hosts of every link in the text."""
     return [l["host"] for l in _dom.links(text)]
 
 
 def _official(host):
+    """Shortcut for domains.is_official."""
     return _dom.is_official(host)
 
 
@@ -342,6 +345,7 @@ _MOBILE = r"(?<!\d)(?:\+?91[\s-]?)?[6-9][\dXx]{4}[\s-]?[\dXx]{5}(?!\d)"
 
 
 def _asks_for_credentials(text):
+    """Matched text if the message asks you to enter/share a PIN, OTP, password or card details (not negated)."""
     pat = re.compile(r"\b(?:enter|share|send|provide|give|tell|batao|bataye|type|confirm|update|submit|reply with)\b"
                      r"[^.!?\n]{0,30}\b(?:upi ?pin|pin|otp|password|passcode|cvv|card (?:number|details|no)|"
                      r"net ?banking|login details|mpin)\b", re.I)
