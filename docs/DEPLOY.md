@@ -2,7 +2,7 @@
 
 ← Back to the [README](../README.md) · See also [TROUBLESHOOTING.md](TROUBLESHOOTING.md) and [SECURITY.md](../SECURITY.md)
 
-**Live demo:** https://spam-scan.onrender.com (Hugging Face Space, free CPU tier)
+**Live demo:** https://spam-scan.onrender.com (Render free plan, see [Render](#render-current-live-deployment) below)
 
 ## Contents
 
