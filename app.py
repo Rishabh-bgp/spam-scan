@@ -125,8 +125,8 @@ def model_info():
 
 if __name__ == "__main__":
     # Local dev server. Defaults to 127.0.0.1:5000; HOST / PORT env vars override it.
-    # In production (Docker / Hugging Face Space) gunicorn serves `app:app` instead,
-    # reading the same HOST / PORT variables (see Dockerfile).
+    # In production (Render, Docker) gunicorn serves `app:app` instead,
+    # binding to the HOST / PORT it is given (see render.yaml and Dockerfile).
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "5000"))
     print(f"Spam classifier running at http://{host}:{port}")

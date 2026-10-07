@@ -1,9 +1,15 @@
-# SPAM//SCAN - production image (Hugging Face Docker Space compatible)
+# SPAM//SCAN - production container image (works on any Docker host).
+# Build:  docker build -t spam-scan .
+# Run:    docker run --rm -p 8000:8000 spam-scan     ->  http://127.0.0.1:8000
+# The live demo does not use this image: it runs on Render's native Python runtime (render.yaml).
 FROM python:3.13-slim
 
-# Non-root user with uid 1000, as recommended by Hugging Face Spaces.
+# Run as an unprivileged user (uid 1000) instead of root.
 RUN useradd -m -u 1000 user
 
+# PORT: platforms such as Render, Railway, Fly.io or Cloud Run inject their own PORT,
+# which overrides the default below. HOST must stay 0.0.0.0 inside a container.
+# WEB_CONCURRENCY / GUNICORN_THREADS: gunicorn workers and threads per worker.
 ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -11,7 +17,7 @@ ENV HOME=/home/user \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     HOST=0.0.0.0 \
-    PORT=7860 \
+    PORT=8000 \
     WEB_CONCURRENCY=2 \
     GUNICORN_THREADS=4
 
@@ -25,11 +31,12 @@ RUN pip install --user -r requirements.txt
 # App code, templates, examples, metrics and the trained model (~8 MB).
 COPY --chown=user . .
 
-EXPOSE 7860
+EXPOSE 8000
 
-# 2 workers x 4 threads suits the free 2 vCPU / 16 GB Space.
-# --preload loads model.joblib once in the master before forking (copy-on-write),
-# --worker-tmp-dir /dev/shm keeps gunicorn's heartbeat files off the overlay disk.
+# 2 workers x 4 threads suits a host with 2 vCPUs and >= 1 GB RAM. Each process needs
+# roughly 300 MB; on a 512 MB host use -e WEB_CONCURRENCY=1.
+# --preload loads model.joblib once in the master before forking (copy-on-write);
+# --worker-tmp-dir /dev/shm keeps gunicorn's heartbeat files off the container disk.
 CMD exec gunicorn app:app \
     --bind ${HOST}:${PORT} \
     --workers ${WEB_CONCURRENCY} \

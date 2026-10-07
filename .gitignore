@@ -1,6 +1,17 @@
+# Python
 .venv/
+venv/
 __pycache__/
 *.pyc
-server.log
+
+# Local data, logs and archives (rebuild data with prepare_data.py)
 data/
+*.log
 *.tgz
+*.zip
+
+# Editors / OS / secrets
+.DS_Store
+.idea/
+.vscode/
+.env

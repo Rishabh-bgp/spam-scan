@@ -1,14 +1,18 @@
+# Keep the build context small: only the app, templates, model and requirements are needed.
+.git/
+.github/
 .venv/
 venv/
 data/
-server.log
+docs/
+__pycache__/
+*.pyc
 *.log
 *.tgz
 *.zip
-__pycache__/
-*.pyc
-.git/
-.github/
-docs/
-deploy/
+.DS_Store
+.env
 .dockerignore
+render.yaml
+run.sh
+run.bat
